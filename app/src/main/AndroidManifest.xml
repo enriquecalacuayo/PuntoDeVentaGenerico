@@ -22,6 +22,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="com.example.puntodeventagenerico.ui.agregarproducto.AgregarProductoActivity" />
+
+
     </application>
 
 </manifest>

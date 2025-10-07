@@ -1,4 +1,4 @@
-package com.example.puntodeventa
+package com.example.puntodeventagenerico
 
 import org.junit.Test
 

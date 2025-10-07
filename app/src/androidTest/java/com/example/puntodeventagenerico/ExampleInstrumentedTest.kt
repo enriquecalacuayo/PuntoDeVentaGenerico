@@ -1,4 +1,4 @@
-package com.example.puntodeventa
+package com.example.puntodeventagenerico
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

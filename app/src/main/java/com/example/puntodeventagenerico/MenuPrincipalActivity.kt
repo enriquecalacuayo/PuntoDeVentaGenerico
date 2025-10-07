@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
+import com.example.puntodeventagenerico.ui.agregarproducto.AgregarProductoActivity
 
 class MenuPrincipalActivity : AppCompatActivity() {
 
@@ -23,7 +24,8 @@ class MenuPrincipalActivity : AppCompatActivity() {
         }
 
         btnAgregarProducto.setOnClickListener {
-            //startActivity(Intent(this, AgregarProductoActivity::class.java))
+            val intent = Intent(this, AgregarProductoActivity::class.java)
+            startActivity(intent)
         }
 
         btnVerProductos.setOnClickListener {
