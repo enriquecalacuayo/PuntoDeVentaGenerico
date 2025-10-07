@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/etNuevaPersonalizacion"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

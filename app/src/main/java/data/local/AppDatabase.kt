@@ -7,13 +7,15 @@ import androidx.room.RoomDatabase
     entities = [
         ProductoEntity::class,
         SubcategoriaEntity::class,
-        PersonalizacionEntity::class
+        PersonalizacionEntity::class,
+        HistorialPersonalizacionEntity::class // ✅ nuevo
     ],
-    version = 5, // ⬆️ Súbelo al siguiente número
+    version = 6, // súbelo en +1
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun productoDao(): ProductoDao
     abstract fun subcategoriaDao(): SubcategoriaDao
     abstract fun personalizacionDao(): PersonalizacionDao
+    abstract fun historialPersonalizacionDao(): HistorialPersonalizacionDao // ✅ nuevo
 }

@@ -20,12 +20,16 @@ class AgregarProductoActivity : AppCompatActivity() {
     private var listaSubcategorias = mutableListOf<SubcategoriaEntity>()
 
     // Personalizaciones
-    private lateinit var etNuevaPersonalizacion: EditText
+    private lateinit var etNuevaPersonalizacion: AutoCompleteTextView
     private lateinit var etCostoExtra: EditText
     private lateinit var btnAgregarPersonalizacion: Button
     private lateinit var listViewPersonalizaciones: ListView
     private lateinit var adaptadorPersonalizaciones: ArrayAdapter<String>
     private val listaPersonalizaciones = mutableListOf<String>()
+
+    // Autocompletado historial
+    private lateinit var adaptadorHistorial: ArrayAdapter<String>
+    private var listaHistorial = mutableListOf<HistorialPersonalizacionEntity>()
 
     // Campos de producto
     private lateinit var etNombre: EditText
@@ -37,7 +41,6 @@ class AgregarProductoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_agregar_producto)
 
-        // Inicializar base de datos con migraciones destructivas
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
@@ -46,7 +49,7 @@ class AgregarProductoActivity : AppCompatActivity() {
             .fallbackToDestructiveMigration()
             .build()
 
-        // Referencias a vistas
+        // Referencias UI
         etNombre = findViewById(R.id.etNombreProducto)
         etPrecioPublico = findViewById(R.id.etPrecioPublico)
         etCostoUnitario = findViewById(R.id.etCostoUnitario)
@@ -73,6 +76,17 @@ class AgregarProductoActivity : AppCompatActivity() {
         )
         listViewPersonalizaciones.adapter = adaptadorPersonalizaciones
 
+        // Cargar historial de personalizaciones previas
+        cargarHistorialPersonalizaciones()
+
+        // Cuando se elija una sugerencia
+        etNuevaPersonalizacion.setOnItemClickListener { _, _, position, _ ->
+            val seleccion = listaHistorial[position]
+            etNuevaPersonalizacion.setText(seleccion.descripcion)
+            etCostoExtra.setText(seleccion.costoExtra.toString())
+        }
+
+        // Botón agregar personalización
         btnAgregarPersonalizacion.setOnClickListener {
             val descripcion = etNuevaPersonalizacion.text.toString().trim()
             val costoTexto = etCostoExtra.text.toString().trim()
@@ -81,11 +95,16 @@ class AgregarProductoActivity : AppCompatActivity() {
             if (descripcion.isNotEmpty()) {
                 val textoMostrar = if (costo > 0.0)
                     "$descripcion (+$${String.format("%.2f", costo)})"
-                else
-                    descripcion
+                else descripcion
 
-                listaPersonalizaciones.add("$descripcion|$costo") // almacenamos ambos valores internamente
+                listaPersonalizaciones.add("$descripcion|$costo")
                 adaptadorPersonalizaciones.add(textoMostrar)
+
+                lifecycleScope.launch {
+                    db.historialPersonalizacionDao().insertar(
+                        HistorialPersonalizacionEntity(descripcion = descripcion, costoExtra = costo)
+                    )
+                }
 
                 etNuevaPersonalizacion.text.clear()
                 etCostoExtra.text.clear()
@@ -94,7 +113,7 @@ class AgregarProductoActivity : AppCompatActivity() {
             }
         }
 
-        // Eliminar personalización al mantener presionado
+        // Eliminar personalización con long press
         listViewPersonalizaciones.setOnItemLongClickListener { _, _, position, _ ->
             val item = adaptadorPersonalizaciones.getItem(position)
             AlertDialog.Builder(this)
@@ -103,20 +122,14 @@ class AgregarProductoActivity : AppCompatActivity() {
                 .setPositiveButton("Sí") { _, _ ->
                     listaPersonalizaciones.removeAt(position)
                     adaptadorPersonalizaciones.remove(item)
-                    adaptadorPersonalizaciones.notifyDataSetChanged()
                 }
                 .setNegativeButton("No", null)
                 .show()
             true
         }
 
-        // Guardar producto
         btnGuardar.setOnClickListener { guardarProducto() }
     }
-
-    // ======================
-    // FUNCIONES DE APOYO
-    // ======================
 
     private fun cargarSubcategorias() {
         lifecycleScope.launch {
@@ -161,6 +174,25 @@ class AgregarProductoActivity : AppCompatActivity() {
         }
     }
 
+    private fun cargarHistorialPersonalizaciones() {
+        lifecycleScope.launch {
+            listaHistorial = db.historialPersonalizacionDao().obtenerTodas().toMutableList()
+            val nombres = listaHistorial.map {
+                if (it.costoExtra > 0.0)
+                    "${it.descripcion} (+$${String.format("%.2f", it.costoExtra)})"
+                else it.descripcion
+            }
+            adaptadorHistorial = ArrayAdapter(
+                this@AgregarProductoActivity,
+                android.R.layout.simple_dropdown_item_1line,
+                nombres
+            )
+            runOnUiThread {
+                etNuevaPersonalizacion.setAdapter(adaptadorHistorial)
+            }
+        }
+    }
+
     private fun guardarProducto() {
         val nombre = etNombre.text.toString().trim()
         val precioPublico = etPrecioPublico.text.toString().toDoubleOrNull() ?: 0.0
@@ -201,12 +233,9 @@ class AgregarProductoActivity : AppCompatActivity() {
             }
 
             runOnUiThread {
-                Toast.makeText(
-                    this@AgregarProductoActivity,
-                    "Producto guardado correctamente",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@AgregarProductoActivity, "Producto guardado correctamente", Toast.LENGTH_SHORT).show()
                 limpiarCampos()
+                cargarHistorialPersonalizaciones()
             }
         }
     }
