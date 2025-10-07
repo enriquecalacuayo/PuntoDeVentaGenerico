@@ -66,6 +66,50 @@
                 android:text="🗑️" />
         </LinearLayout>
 
+
+        <!-- Personalizaciones -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Personalizaciones del producto"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etNuevaPersonalizacion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Agregar opción..." />
+
+            <EditText
+                android:id="@+id/etCostoExtra"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="$ Extra" />
+
+            <Button
+                android:id="@+id/btnAgregarPersonalizacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="➕" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/listViewPersonalizaciones"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp" />
+
+
+
         <!-- Botón Guardar -->
         <Button
             android:id="@+id/btnGuardarProducto"
@@ -73,6 +117,7 @@
             android:layout_height="wrap_content"
             android:text="Guardar producto"
             android:layout_marginTop="24dp" />
+
 
     </LinearLayout>
 </ScrollView>

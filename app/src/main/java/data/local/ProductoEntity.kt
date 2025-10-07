@@ -9,5 +9,6 @@ data class ProductoEntity(
     val nombre: String,
     val precioPublico: Double,
     val costoUnitario: Double,
-    val personalizaciones: String? = null
+    val personalizaciones: String? = null,
+    val categoria: String, // 👈 ESTE CAMPO DEBE EXISTIR
 )
