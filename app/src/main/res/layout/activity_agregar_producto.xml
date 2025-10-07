@@ -1,50 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp">
+    android:padding="16dp"
+    tools:context=".ui.agregarproducto.AgregarProductoActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="10dp">
+        android:orientation="vertical">
 
+        <!-- Nombre del producto -->
         <EditText
             android:id="@+id/etNombreProducto"
-            android:hint="Nombre del producto"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:hint="Nombre del producto" />
 
+        <!-- Precio al público -->
         <EditText
             android:id="@+id/etPrecioPublico"
-            android:hint="Precio al público"
-            android:inputType="numberDecimal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="Precio al público" />
 
+        <!-- Costo unitario -->
         <EditText
             android:id="@+id/etCostoUnitario"
-            android:hint="Costo unitario"
-            android:inputType="numberDecimal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etPersonalizaciones"
-            android:hint="Opciones personalizables (ej: tipo de leche, tamaño...)"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="100dp"
-            android:gravity="top"/>
+            android:inputType="numberDecimal"
+            android:hint="Costo unitario" />
 
+        <!-- Subcategoría -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Subcategoría"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spinnerSubcategoria"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/btnNuevaSubcategoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="➕" />
+
+            <Button
+                android:id="@+id/btnEliminarSubcategoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🗑️" />
+        </LinearLayout>
+
+        <!-- Botón Guardar -->
         <Button
             android:id="@+id/btnGuardarProducto"
-            android:text="Guardar producto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"/>
+            android:text="Guardar producto"
+            android:layout_marginTop="24dp" />
 
     </LinearLayout>
 </ScrollView>

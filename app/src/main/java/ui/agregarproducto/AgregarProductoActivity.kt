@@ -1,62 +1,84 @@
 package com.example.puntodeventagenerico.ui.agregarproducto
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
-import com.example.puntodeventagenerico.data.local.AppDatabase
-import com.example.puntodeventagenerico.data.local.ProductoEntity
 import com.example.puntodeventagenerico.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.example.puntodeventagenerico.data.local.*
 import kotlinx.coroutines.launch
 
 class AgregarProductoActivity : AppCompatActivity() {
+
+    private lateinit var db: AppDatabase
+    private lateinit var spinnerSubcategoria: Spinner
+    private lateinit var adaptadorSubcategorias: ArrayAdapter<String>
+    private var listaSubcategorias = mutableListOf<SubcategoriaEntity>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_agregar_producto)
 
-        val etNombre = findViewById<EditText>(R.id.etNombreProducto)
-        val etPrecioPublico = findViewById<EditText>(R.id.etPrecioPublico)
-        val etCostoUnitario = findViewById<EditText>(R.id.etCostoUnitario)
-        val etPersonalizaciones = findViewById<EditText>(R.id.etPersonalizaciones)
-        val btnGuardar = findViewById<Button>(R.id.btnGuardarProducto)
-
-        val db = Room.databaseBuilder(
+        db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "punto_de_venta_db"
+            "punto_venta_db"
         ).build()
 
-        btnGuardar.setOnClickListener {
-            val nombre = etNombre.text.toString().trim()
-            val precioPublico = etPrecioPublico.text.toString().toDoubleOrNull()
-            val costoUnitario = etCostoUnitario.text.toString().toDoubleOrNull()
-            val personalizaciones = etPersonalizaciones.text.toString().trim()
+        spinnerSubcategoria = findViewById(R.id.spinnerSubcategoria)
+        val btnNueva = findViewById<Button>(R.id.btnNuevaSubcategoria)
+        val btnEliminar = findViewById<Button>(R.id.btnEliminarSubcategoria)
 
-            if (nombre.isEmpty() || precioPublico == null || costoUnitario == null) {
-                Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+        cargarSubcategorias()
 
-            val nuevoProducto = ProductoEntity(
-                nombre = nombre,
-                precioPublico = precioPublico,
-                costoUnitario = costoUnitario,
-                personalizaciones = if (personalizaciones.isEmpty()) null else personalizaciones
+        btnNueva.setOnClickListener { mostrarDialogNuevaSubcategoria() }
+        btnEliminar.setOnClickListener { eliminarSubcategoriaSeleccionada() }
+    }
+
+    private fun cargarSubcategorias() {
+        lifecycleScope.launch {
+            listaSubcategorias = db.subcategoriaDao().obtenerTodas().toMutableList()
+            val nombres = listaSubcategorias.map { it.nombre }
+            adaptadorSubcategorias = ArrayAdapter(
+                this@AgregarProductoActivity,
+                android.R.layout.simple_spinner_item,
+                nombres
             )
+            adaptadorSubcategorias.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerSubcategoria.adapter = adaptadorSubcategorias
+        }
+    }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                db.productoDao().insertarProducto(nuevoProducto)
-                runOnUiThread {
-                    Toast.makeText(this@AgregarProductoActivity, "Producto guardado correctamente", Toast.LENGTH_SHORT).show()
-                    finish()
+    private fun mostrarDialogNuevaSubcategoria() {
+        val input = EditText(this)
+        AlertDialog.Builder(this)
+            .setTitle("Nueva subcategoría")
+            .setView(input)
+            .setPositiveButton("Guardar") { _, _ ->
+                val nombre = input.text.toString().trim()
+                if (nombre.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        db.subcategoriaDao().insertar(SubcategoriaEntity(nombre = nombre))
+                        cargarSubcategorias()
+                    }
                 }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun eliminarSubcategoriaSeleccionada() {
+        val posicion = spinnerSubcategoria.selectedItemPosition
+        if (posicion >= 0 && listaSubcategorias.isNotEmpty()) {
+            val sub = listaSubcategorias[posicion]
+            lifecycleScope.launch {
+                db.subcategoriaDao().eliminar(sub)
+                cargarSubcategorias()
             }
         }
     }
 }
+
 
