@@ -23,6 +23,10 @@
         </activity>
 
         <activity android:name="com.example.puntodeventagenerico.ui.agregarproducto.AgregarProductoActivity" />
+        <activity
+            android:name=".ui.venta.IniciarVentaActivity"
+            android:exported="true"
+            android:label="Iniciar venta" />
 
 
     </application>

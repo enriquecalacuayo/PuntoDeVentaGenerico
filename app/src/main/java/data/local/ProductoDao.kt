@@ -16,4 +16,7 @@ interface ProductoDao {
 
     @Delete
     suspend fun eliminar(producto: ProductoEntity)
+
+    @Query("SELECT * FROM productos WHERE categoria = :categoria")
+    suspend fun obtenerPorCategoria(categoria: String): List<ProductoEntity>
 }
