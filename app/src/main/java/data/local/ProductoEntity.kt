@@ -7,8 +7,7 @@ import androidx.room.PrimaryKey
 data class ProductoEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
+    val categoria: String,
     val precioPublico: Double,
-    val costoUnitario: Double,
-    val personalizaciones: String? = null,
-    val categoria: String, // 👈 ESTE CAMPO DEBE EXISTIR
+    val costoUnitario: Double
 )

@@ -8,14 +8,22 @@ import androidx.room.RoomDatabase
         ProductoEntity::class,
         SubcategoriaEntity::class,
         PersonalizacionEntity::class,
-        HistorialPersonalizacionEntity::class // ✅ nuevo
+        ComandaEntity::class,
+        HistorialPersonalizacionEntity::class
     ],
-    version = 6, // súbelo en +1
+    version = 4, // 🔹 Sube la versión para forzar la regeneración del esquema
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun productoDao(): ProductoDao
     abstract fun subcategoriaDao(): SubcategoriaDao
     abstract fun personalizacionDao(): PersonalizacionDao
-    abstract fun historialPersonalizacionDao(): HistorialPersonalizacionDao // ✅ nuevo
+    abstract fun comandaDao(): ComandaDao
+    abstract fun historialPersonalizacionDao(): HistorialPersonalizacionDao
+
+    companion object {
+        const val DATABASE_NAME = "punto_venta_db"
+    }
 }
+

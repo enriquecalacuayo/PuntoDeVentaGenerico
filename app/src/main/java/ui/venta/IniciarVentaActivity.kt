@@ -7,155 +7,190 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.puntodeventagenerico.R
-import com.example.puntodeventagenerico.data.local.*
+import com.example.puntodeventagenerico.data.local.AppDatabase
+import com.example.puntodeventagenerico.data.local.CarritoItem
+import com.example.puntodeventagenerico.data.local.ComandaEntity
+import com.example.puntodeventagenerico.data.local.ProductoEntity
+import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
+
 import kotlinx.coroutines.launch
 
 class IniciarVentaActivity : AppCompatActivity() {
 
-    private lateinit var db: AppDatabase
     private lateinit var spinnerSubcategoria: Spinner
     private lateinit var listViewProductos: ListView
     private lateinit var listViewCarrito: ListView
-    private lateinit var tvTotal: TextView
+    private lateinit var btnEnviarComanda: Button
+
+    private lateinit var carritoAdapter: CarritoAdapter
+    private lateinit var productoAdapter: ArrayAdapter<String>
 
     private val carrito = mutableListOf<CarritoItem>()
-    private lateinit var adaptadorCarrito: ArrayAdapter<String>
-
-    private var listaSubcategorias = listOf<SubcategoriaEntity>()
+    private val listaProductos = mutableListOf<ProductoEntity>()
+    private lateinit var db: AppDatabase
+    private lateinit var txtTotalCarrito: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_iniciar_venta)
 
-        db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "punto_venta_db"
-        ).fallbackToDestructiveMigration().build()
-
         spinnerSubcategoria = findViewById(R.id.spinnerSubcategoria)
         listViewProductos = findViewById(R.id.listViewProductos)
         listViewCarrito = findViewById(R.id.listViewCarrito)
-        tvTotal = findViewById(R.id.tvTotal)
+        btnEnviarComanda = findViewById(R.id.btnEnviarComanda)
+        txtTotalCarrito = findViewById(R.id.txtTotalCarrito)
 
-        adaptadorCarrito = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
-        listViewCarrito.adapter = adaptadorCarrito
+        // Inicializar base de datos
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            AppDatabase.DATABASE_NAME
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
+        // Adaptador para carrito
+        carritoAdapter = CarritoAdapter(this, carrito) {
+            actualizarTotalCarrito()
+        }
+        listViewCarrito.adapter = carritoAdapter
+
+        // Cargar subcategorías y productos
         cargarSubcategorias()
+
+        spinnerSubcategoria.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long
+            ) {
+                val subcategoriaSeleccionada = spinnerSubcategoria.selectedItem.toString()
+                cargarProductos(subcategoriaSeleccionada)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Al hacer clic en un producto se agrega al carrito
+        listViewProductos.setOnItemClickListener { _, _, position, _ ->
+            val productoSeleccionado = listaProductos[position]
+
+            lifecycleScope.launch {
+                val personalizaciones = db.personalizacionDao().obtenerPorProducto(productoSeleccionado.id)
+
+                if (personalizaciones.isNotEmpty()) {
+                    mostrarDialogPersonalizacion(productoSeleccionado, personalizaciones)
+                } else {
+                    agregarAlCarrito(productoSeleccionado)
+                }
+            }
+        }
+
+        // Enviar comanda al presionar botón
+        btnEnviarComanda.setOnClickListener {
+            enviarComanda()
+        }
+    }
+
+    private fun actualizarTotalCarrito() {
+        val total = carrito.sumOf { it.precioTotal() }
+        txtTotalCarrito.text = "Total: $${"%.2f".format(total)}"
+    }
+
+    private fun mostrarDialogPersonalizacion(
+        producto: ProductoEntity,
+        personalizaciones: List<PersonalizacionEntity>
+    ) {
+        val opciones = personalizaciones.map { "${it.descripcion} (+$${it.costoExtra})" }.toTypedArray()
+        val seleccionados = mutableListOf<Int>()
+
+        AlertDialog.Builder(this)
+            .setTitle("Personaliza ${producto.nombre}")
+            .setMultiChoiceItems(opciones, null) { _, which, isChecked ->
+                if (isChecked) seleccionados.add(which)
+                else seleccionados.remove(which)
+            }
+            .setPositiveButton("Agregar al carrito") { _, _ ->
+                val seleccionadas = seleccionados.map { personalizaciones[it] }
+
+                val descripcionFinal = if (seleccionadas.isNotEmpty()) {
+                    val extras = seleccionadas.joinToString(", ") { it.descripcion }
+                    "${producto.nombre} ($extras)"
+                } else {
+                    producto.nombre
+                }
+
+                val productoPersonalizado = producto.copy(
+                    nombre = descripcionFinal,
+                    precioPublico = producto.precioPublico + seleccionadas.sumOf { it.costoExtra }
+                )
+
+                agregarAlCarrito(productoPersonalizado)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun cargarSubcategorias() {
         lifecycleScope.launch {
-            listaSubcategorias = db.subcategoriaDao().obtenerTodas()
-            val nombres = listaSubcategorias.map { it.nombre }
-
-            runOnUiThread {
-                val adaptador = ArrayAdapter(this@IniciarVentaActivity, android.R.layout.simple_spinner_item, nombres)
-                adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinnerSubcategoria.adapter = adaptador
-
-                spinnerSubcategoria.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                        val subcategoriaSeleccionada = nombres[position]
-                        cargarProductosPorSubcategoria(subcategoriaSeleccionada)
-                    }
-
-                    override fun onNothingSelected(parent: AdapterView<*>?) {}
-                }
-            }
+            val subcategorias = db.subcategoriaDao().obtenerTodas()
+            val nombres = subcategorias.map { it.nombre }
+            val adapter = ArrayAdapter(
+                this@IniciarVentaActivity,
+                android.R.layout.simple_spinner_item,
+                nombres
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerSubcategoria.adapter = adapter
         }
     }
 
-    private fun cargarProductosPorSubcategoria(nombreSub: String) {
+    private fun cargarProductos(subcategoria: String) {
         lifecycleScope.launch {
-            val productos = db.productoDao().obtenerPorCategoria(nombreSub)
-            runOnUiThread {
-                val nombres = productos.map { it.nombre }
-                val adaptador = ArrayAdapter(this@IniciarVentaActivity, android.R.layout.simple_list_item_1, nombres)
-                listViewProductos.adapter = adaptador
+            listaProductos.clear()
+            listaProductos.addAll(db.productoDao().obtenerPorCategoria(subcategoria))
 
-                listViewProductos.setOnItemClickListener { _, _, position, _ ->
-                    val producto = productos[position]
-                    mostrarDialogPersonalizaciones(producto)
-                }
-            }
+            val nombres = listaProductos.map { "${it.nombre} - $${it.precioPublico}" }
+            productoAdapter = ArrayAdapter(
+                this@IniciarVentaActivity,
+                android.R.layout.simple_list_item_1,
+                nombres
+            )
+            listViewProductos.adapter = productoAdapter
         }
     }
 
-    private fun mostrarDialogPersonalizaciones(producto: ProductoEntity) {
-        lifecycleScope.launch {
-            val personalizaciones = db.personalizacionDao().obtenerPorProducto(producto.id)
-
-            if (personalizaciones.isEmpty()) {
-                agregarAlCarrito(producto, emptyList())
-                return@launch
-            }
-
-            val nombres = personalizaciones.map {
-                if (it.costoExtra > 0) "${it.descripcion} (+$${it.costoExtra})"
-                else it.descripcion
-            }.toTypedArray()
-
-            val seleccionados = BooleanArray(personalizaciones.size)
-
-            runOnUiThread {
-                AlertDialog.Builder(this@IniciarVentaActivity)
-                    .setTitle("Personalizar ${producto.nombre}")
-                    .setMultiChoiceItems(nombres, seleccionados) { _, which, isChecked ->
-                        seleccionados[which] = isChecked
-                    }
-                    .setPositiveButton("Agregar") { _, _ ->
-                        val seleccion = personalizaciones.filterIndexed { i, _ -> seleccionados[i] }
-                        agregarAlCarrito(producto, seleccion)
-                    }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
-            }
-        }
-    }
-
-    private fun agregarAlCarrito(producto: ProductoEntity, personalizaciones: List<PersonalizacionEntity>) {
-        val existente = carrito.find {
-            it.producto.id == producto.id && it.personalizaciones.map { p -> p.descripcion } == personalizaciones.map { p -> p.descripcion }
-        }
-
-        if (existente != null) {
-            existente.cantidad++
+    private fun agregarAlCarrito(producto: ProductoEntity) {
+        val itemExistente = carrito.find { it.producto.id == producto.id }
+        if (itemExistente != null) {
+            itemExistente.cantidad++
         } else {
-            carrito.add(CarritoItem(producto, personalizaciones))
+            carrito.add(CarritoItem(producto, 1))
         }
-
-        actualizarCarrito()
+        carritoAdapter.notifyDataSetChanged()
     }
 
-    private fun actualizarCarrito() {
-        val listaTexto = carrito.map { it.descripcionCompleta() }
-        adaptadorCarrito.clear()
-        adaptadorCarrito.addAll(listaTexto)
-        adaptadorCarrito.notifyDataSetChanged()
+    private fun enviarComanda() {
+        lifecycleScope.launch {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java,
+                AppDatabase.DATABASE_NAME
+            )
+                .fallbackToDestructiveMigration()
+                .build()
 
-        val total = carrito.sumOf { it.calcularSubtotal() }
-        tvTotal.text = "Total: $${String.format("%.2f", total)}"
-
-        listViewCarrito.setOnItemClickListener { _, _, position, _ ->
-            mostrarOpcionesCarrito(position)
-        }
-    }
-
-    private fun mostrarOpcionesCarrito(pos: Int) {
-        val item = carrito[pos]
-        val opciones = arrayOf("➕ Aumentar", "➖ Disminuir", "❌ Eliminar")
-
-        AlertDialog.Builder(this)
-            .setTitle(item.producto.nombre)
-            .setItems(opciones) { _, which ->
-                when (which) {
-                    0 -> item.cantidad++
-                    1 -> if (item.cantidad > 1) item.cantidad-- else carrito.removeAt(pos)
-                    2 -> carrito.removeAt(pos)
-                }
-                actualizarCarrito()
+            for (item in carrito) {
+                val descripcion = item.descripcionCompleta()
+                db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
             }
-            .show()
+
+            carrito.clear()
+            carritoAdapter.notifyDataSetChanged()
+
+            Toast.makeText(
+                this@IniciarVentaActivity,
+                "Comanda enviada correctamente",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 }

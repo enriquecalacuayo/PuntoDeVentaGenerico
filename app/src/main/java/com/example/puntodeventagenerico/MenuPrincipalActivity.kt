@@ -2,10 +2,12 @@ package com.example.puntodeventagenerico
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import com.example.puntodeventagenerico.ui.agregarproducto.AgregarProductoActivity
 import com.example.puntodeventagenerico.ui.venta.IniciarVentaActivity
+import com.example.puntodeventagenerico.ui.vereditarproductos.VerEditarProductosActivity
+import com.example.puntodeventagenerico.ui.comandas.VerComandasActivity
 
 class MenuPrincipalActivity : AppCompatActivity() {
 
@@ -19,27 +21,29 @@ class MenuPrincipalActivity : AppCompatActivity() {
         val btnHistorialVentas = findViewById<Button>(R.id.btnHistorialVentas)
         val btnVerComandas = findViewById<Button>(R.id.btnVerComandas)
 
-        // Navegación (por ahora solo placeholders)
+        // 🛒 Iniciar venta
         btnIniciarVenta.setOnClickListener {
-            val intent = Intent(this, IniciarVentaActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, IniciarVentaActivity::class.java))
         }
 
+        // ➕ Agregar producto
         btnAgregarProducto.setOnClickListener {
-            val intent = Intent(this, AgregarProductoActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, AgregarProductoActivity::class.java))
         }
 
+        // ✏️ Ver o editar productos
         btnVerProductos.setOnClickListener {
-            //startActivity(Intent(this, VerProductosActivity::class.java))
+            startActivity(Intent(this, VerEditarProductosActivity::class.java))
         }
 
+        // 📊 Historial de ventas (por ahora sin funcionalidad)
         btnHistorialVentas.setOnClickListener {
-            //startActivity(Intent(this, HistorialVentasActivity::class.java))
+            // startActivity(Intent(this, HistorialVentasActivity::class.java))
         }
 
+        // ☕ Ver comandas
         btnVerComandas.setOnClickListener {
-            //startActivity(Intent(this, VerComandasActivity::class.java))
+            startActivity(Intent(this, VerComandasActivity::class.java))
         }
     }
 }

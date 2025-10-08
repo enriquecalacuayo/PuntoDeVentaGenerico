@@ -3,10 +3,9 @@ package com.example.puntodeventagenerico.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "personalizaciones")
-data class PersonalizacionEntity(
+@Entity(tableName = "comandas")
+data class ComandaEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val productoId: Int,
     val descripcion: String,
-    val costoExtra: Double
+    val fechaHora: Long = System.currentTimeMillis()
 )
