@@ -176,7 +176,7 @@ class AgregarProductoActivity : AppCompatActivity() {
 
     private fun cargarHistorialPersonalizaciones() {
         lifecycleScope.launch {
-            listaHistorial = db.historialPersonalizacionDao().obtenerTodas().toMutableList()
+            listaHistorial = db.historialPersonalizacionDao().obtenerTodos().toMutableList()
             val nombres = listaHistorial.map {
                 if (it.costoExtra > 0.0)
                     "${it.descripcion} (+$${String.format("%.2f", it.costoExtra)})"

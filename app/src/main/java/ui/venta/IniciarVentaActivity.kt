@@ -13,6 +13,7 @@ import com.example.puntodeventagenerico.data.local.CarritoItem
 import com.example.puntodeventagenerico.data.local.ComandaEntity
 import com.example.puntodeventagenerico.data.local.ProductoEntity
 import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
+import com.example.puntodeventagenerico.data.local.VentaEntity
 import com.example.puntodeventagenerico.ui.comandas.VerComandasActivity
 
 import kotlinx.coroutines.launch
@@ -191,31 +192,72 @@ class IniciarVentaActivity : AppCompatActivity() {
                 .fallbackToDestructiveMigration()
                 .build()
 
-            // Insertar cada producto del carrito como una comanda individual
+            // 1️⃣ Enviar comandas a cocina
             for (item in carrito) {
                 val descripcion = item.descripcionCompleta()
                 db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
             }
 
+            // 2️⃣ Guardar la venta en la tabla de ventas
+            val totalVenta = carrito.sumOf { it.precioTotal() }
+            val ganancia = carrito.sumOf {
+                (it.producto.precioPublico - it.producto.costoUnitario) * it.cantidad
+            }
+
+            val productosResumen = carrito.joinToString("\n") {
+                "${it.producto.nombre} x${it.cantidad}"
+            }
+
+            val venta = VentaEntity(
+                productosVendidos = productosResumen,
+                totalVenta = totalVenta,
+                ganancia = ganancia
+            )
+
+            db.ventaDao().insertar(venta)
+
+            // 3️⃣ Limpiar carrito
             carrito.clear()
             carritoAdapter.notifyDataSetChanged()
 
             runOnUiThread {
                 Toast.makeText(
                     this@IniciarVentaActivity,
-                    "Comanda enviada correctamente",
+                    "Comanda enviada y venta registrada",
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // 👇 Ir directamente a la pantalla de comandas
+                // 4️⃣ Ir directamente a la vista de comandas
                 val intent = Intent(this@IniciarVentaActivity, VerComandasActivity::class.java)
                 startActivity(intent)
-
-                // (opcional) cerrar esta pantalla para no volver con el botón atrás
                 finish()
             }
         }
     }
+
+
+    private fun guardarVenta() {
+        lifecycleScope.launch {
+            val totalVenta = carrito.sumOf { it.precioTotal() }
+            val ganancia = carrito.sumOf { it.producto.precioPublico - it.producto.costoUnitario }
+
+            val productosResumen = carrito.joinToString("\n") {
+                "${it.producto.nombre} x${it.cantidad}"
+            }
+
+            val venta = VentaEntity(
+                productosVendidos = productosResumen,
+                totalVenta = totalVenta,
+                ganancia = ganancia
+            )
+
+            db.ventaDao().insertar(venta)
+            carrito.clear()
+            carritoAdapter.notifyDataSetChanged()
+            Toast.makeText(this@IniciarVentaActivity, "Venta guardada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
 
 }

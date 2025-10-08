@@ -1,12 +1,14 @@
 package com.example.puntodeventagenerico.data.local
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
 
 @Dao
 interface HistorialPersonalizacionDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun insertar(historial: HistorialPersonalizacionEntity)
 
-    @Query("SELECT * FROM historial_personalizaciones")
-    suspend fun obtenerTodas(): List<HistorialPersonalizacionEntity>
+    @Query("SELECT * FROM historial_personalizacion ORDER BY id DESC")
+    suspend fun obtenerTodos(): List<HistorialPersonalizacionEntity>
 }

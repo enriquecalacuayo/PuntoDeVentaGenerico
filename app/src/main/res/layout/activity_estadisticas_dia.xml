@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Totales -->
+        <TextView
+            android:id="@+id/txtTotalVentas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total vendido: $0.00"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtGanancia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ganancia neta: $0.00"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+        <!-- Productos vendidos -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Productos vendidos:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutProductosVendidos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp" />
+
+        <!-- Línea divisoria -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginTop="16dp" />
+
+        <!-- 🧾 Sección de gastos -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gastos del día"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <EditText
+                android:id="@+id/etNombreGasto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Descripción del gasto" />
+
+            <EditText
+                android:id="@+id/etMontoGasto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal"
+                android:hint="Monto ($)" />
+
+            <Button
+                android:id="@+id/btnAgregarGasto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/listViewGastos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Línea divisoria -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginTop="16dp" />
+
+        <!-- Control de caja -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Control de Caja"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp" />
+
+        <EditText
+            android:id="@+id/etCajaInicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Dinero en caja al inicio ($)"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/etCajaFinal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Dinero en caja al final ($)"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:id="@+id/txtResultadoCaja"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resultado de caja aparecerá aquí"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnGuardarCaja"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar registro de caja"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+</ScrollView>

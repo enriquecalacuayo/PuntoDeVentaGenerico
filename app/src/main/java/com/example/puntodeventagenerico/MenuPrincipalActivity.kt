@@ -8,6 +8,7 @@ import com.example.puntodeventagenerico.ui.agregarproducto.AgregarProductoActivi
 import com.example.puntodeventagenerico.ui.venta.IniciarVentaActivity
 import com.example.puntodeventagenerico.ui.vereditarproductos.VerEditarProductosActivity
 import com.example.puntodeventagenerico.ui.comandas.VerComandasActivity
+import com.example.puntodeventagenerico.ui.historial.HistorialVentasActivity
 
 class MenuPrincipalActivity : AppCompatActivity() {
 
@@ -38,7 +39,7 @@ class MenuPrincipalActivity : AppCompatActivity() {
 
         // 📊 Historial de ventas (por ahora sin funcionalidad)
         btnHistorialVentas.setOnClickListener {
-            // startActivity(Intent(this, HistorialVentasActivity::class.java))
+            startActivity(Intent(this, HistorialVentasActivity::class.java))
         }
 
         // ☕ Ver comandas
