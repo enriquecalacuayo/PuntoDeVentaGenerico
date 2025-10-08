@@ -1,5 +1,6 @@
 package com.example.puntodeventagenerico.ui.venta
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -12,6 +13,7 @@ import com.example.puntodeventagenerico.data.local.CarritoItem
 import com.example.puntodeventagenerico.data.local.ComandaEntity
 import com.example.puntodeventagenerico.data.local.ProductoEntity
 import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
+import com.example.puntodeventagenerico.ui.comandas.VerComandasActivity
 
 import kotlinx.coroutines.launch
 
@@ -123,7 +125,7 @@ class IniciarVentaActivity : AppCompatActivity() {
                     precioPublico = producto.precioPublico + seleccionadas.sumOf { it.costoExtra }
                 )
 
-                agregarAlCarrito(productoPersonalizado)
+                agregarAlCarrito(productoPersonalizado, seleccionadas)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -158,15 +160,26 @@ class IniciarVentaActivity : AppCompatActivity() {
         }
     }
 
-    private fun agregarAlCarrito(producto: ProductoEntity) {
-        val itemExistente = carrito.find { it.producto.id == producto.id }
+    private fun agregarAlCarrito(producto: ProductoEntity, personalizaciones: List<PersonalizacionEntity> = emptyList()) {
+        // Buscar si ya existe un producto con el mismo id y las mismas personalizaciones
+        val itemExistente = carrito.find { item ->
+            item.producto.id == producto.id &&
+                    item.personalizaciones.map { it.descripcion }.sorted() ==
+                    personalizaciones.map { it.descripcion }.sorted()
+        }
+
         if (itemExistente != null) {
+            // Si existe uno idéntico (mismo producto + mismas personalizaciones), solo aumenta cantidad
             itemExistente.cantidad++
         } else {
-            carrito.add(CarritoItem(producto, 1))
+            // Si es distinto (personalizado o nuevo), se agrega como nuevo ítem
+            carrito.add(CarritoItem(producto, 1, personalizaciones))
         }
+
         carritoAdapter.notifyDataSetChanged()
+        actualizarTotalCarrito()
     }
+
 
     private fun enviarComanda() {
         lifecycleScope.launch {
@@ -178,6 +191,7 @@ class IniciarVentaActivity : AppCompatActivity() {
                 .fallbackToDestructiveMigration()
                 .build()
 
+            // Insertar cada producto del carrito como una comanda individual
             for (item in carrito) {
                 val descripcion = item.descripcionCompleta()
                 db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
@@ -186,11 +200,22 @@ class IniciarVentaActivity : AppCompatActivity() {
             carrito.clear()
             carritoAdapter.notifyDataSetChanged()
 
-            Toast.makeText(
-                this@IniciarVentaActivity,
-                "Comanda enviada correctamente",
-                Toast.LENGTH_SHORT
-            ).show()
+            runOnUiThread {
+                Toast.makeText(
+                    this@IniciarVentaActivity,
+                    "Comanda enviada correctamente",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // 👇 Ir directamente a la pantalla de comandas
+                val intent = Intent(this@IniciarVentaActivity, VerComandasActivity::class.java)
+                startActivity(intent)
+
+                // (opcional) cerrar esta pantalla para no volver con el botón atrás
+                finish()
+            }
         }
     }
+
+
 }

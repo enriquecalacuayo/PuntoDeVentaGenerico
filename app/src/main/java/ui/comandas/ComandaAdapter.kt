@@ -22,9 +22,24 @@ class ComandaAdapter(private val comandas: List<ComandaEntity>) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val comanda = comandas[position]
+        val comanda = comandas[position]  // ← aquí se define la comanda
+
         holder.txtDescripcion.text = comanda.descripcion
+
+        // 👇 Mantener presionado para eliminar
+        holder.itemView.setOnLongClickListener {
+            onItemLongClickListener?.invoke(comanda)
+            true
+        }
     }
 
+
     override fun getItemCount() = comandas.size
+
+    private var onItemLongClickListener: ((ComandaEntity) -> Unit)? = null
+
+    fun setOnItemLongClickListener(listener: (ComandaEntity) -> Unit) {
+        onItemLongClickListener = listener
+    }
+
 }

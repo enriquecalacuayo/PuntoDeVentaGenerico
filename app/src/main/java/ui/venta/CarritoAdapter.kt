@@ -35,11 +35,16 @@ class CarritoAdapter(
         val btnRestar = view.findViewById<ImageButton>(R.id.btnRestar)
         val btnEliminar = view.findViewById<ImageButton>(R.id.btnEliminar)
 
+        // ✅ Mostrar solo el nombre (con o sin paréntesis, según ya venga)
         txtNombreProducto.text = item.producto.nombre
-        txtPersonalizaciones.text =
-            if (item.personalizaciones.isNotEmpty())
-                item.personalizaciones.joinToString(", ") { it.descripcion }
-            else "Sin personalizaciones"
+
+        // ✅ No mostrar nada si no hay personalizaciones
+        if (item.personalizaciones.isEmpty()) {
+            txtPersonalizaciones.visibility = View.GONE
+        } else {
+            txtPersonalizaciones.visibility = View.GONE // No las mostramos porque ya están en el nombre
+        }
+
         txtCantidad.text = item.cantidad.toString()
         txtSubtotal.text = "$${String.format("%.2f", item.producto.precioPublico * item.cantidad)}"
 
