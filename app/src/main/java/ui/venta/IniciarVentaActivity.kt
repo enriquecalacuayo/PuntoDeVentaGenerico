@@ -98,6 +98,7 @@ class IniciarVentaActivity : AppCompatActivity() {
         txtTotalCarrito.text = "Total: $${"%.2f".format(total)}"
     }
 
+
     private fun mostrarDialogPersonalizacion(
         producto: ProductoEntity,
         personalizaciones: List<PersonalizacionEntity>
@@ -114,23 +115,28 @@ class IniciarVentaActivity : AppCompatActivity() {
             .setPositiveButton("Agregar al carrito") { _, _ ->
                 val seleccionadas = seleccionados.map { personalizaciones[it] }
 
-                val descripcionFinal = if (seleccionadas.isNotEmpty()) {
-                    val extras = seleccionadas.joinToString(", ") { it.descripcion }
-                    "${producto.nombre} ($extras)"
-                } else {
-                    producto.nombre
-                }
+                // Calcular precio final con extras
+                val precioFinal = producto.precioPublico + seleccionadas.sumOf { it.costoExtra }
 
                 val productoPersonalizado = producto.copy(
-                    nombre = descripcionFinal,
-                    precioPublico = producto.precioPublico + seleccionadas.sumOf { it.costoExtra }
+                    nombre = buildString {
+                        append(producto.nombre)
+                        if (seleccionadas.isNotEmpty()) {
+                            append(" (")
+                            append(seleccionadas.joinToString(", ") { it.descripcion })
+                            append(")")
+                        }
+                    },
+                    precioPublico = precioFinal // ✅ ya incluye los extras
                 )
 
+                // Agregar al carrito
                 agregarAlCarrito(productoPersonalizado, seleccionadas)
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
 
     private fun cargarSubcategorias() {
         lifecycleScope.launch {
@@ -161,24 +167,24 @@ class IniciarVentaActivity : AppCompatActivity() {
         }
     }
 
-    private fun agregarAlCarrito(producto: ProductoEntity, personalizaciones: List<PersonalizacionEntity> = emptyList()) {
-        // Buscar si ya existe un producto con el mismo id y las mismas personalizaciones
+    private fun agregarAlCarrito(
+        producto: ProductoEntity,
+        personalizaciones: List<PersonalizacionEntity> = emptyList()
+    ) {
         val itemExistente = carrito.find { item ->
-            item.producto.id == producto.id &&
+            item.producto.nombre == producto.nombre &&
                     item.personalizaciones.map { it.descripcion }.sorted() ==
                     personalizaciones.map { it.descripcion }.sorted()
         }
 
         if (itemExistente != null) {
-            // Si existe uno idéntico (mismo producto + mismas personalizaciones), solo aumenta cantidad
             itemExistente.cantidad++
         } else {
-            // Si es distinto (personalizado o nuevo), se agrega como nuevo ítem
             carrito.add(CarritoItem(producto, 1, personalizaciones))
         }
 
         carritoAdapter.notifyDataSetChanged()
-        actualizarTotalCarrito()
+        actualizarTotalCarrito() // ✅ solo se llama una vez
     }
 
 

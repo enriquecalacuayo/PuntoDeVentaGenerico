@@ -7,17 +7,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.puntodeventagenerico.R
-import com.example.puntodeventagenerico.data.local.*
+import com.example.puntodeventagenerico.data.local.AppDatabase
+import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
 import kotlinx.coroutines.launch
 
 class VerEditarProductosActivity : AppCompatActivity() {
 
     private lateinit var db: AppDatabase
-    private lateinit var spinnerSubcategoria: Spinner
-    private lateinit var listViewProductos: ListView
+    private var productoId: Int = 0
 
-    private var listaSubcategorias = listOf<SubcategoriaEntity>()
-    private var listaProductos = listOf<ProductoEntity>()
+    private lateinit var etNombre: EditText
+    private lateinit var etPrecio: EditText
+    private lateinit var etCosto: EditText
+    private lateinit var btnGuardar: Button
+
+    private lateinit var listViewPersonalizaciones: ListView
+    private lateinit var btnAgregarPersonalizacion: Button
+
+    private lateinit var adaptador: ArrayAdapter<String>
+    private val listaPersonalizaciones = mutableListOf<PersonalizacionEntity>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,104 +34,160 @@ class VerEditarProductosActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "punto_venta_db"
+            AppDatabase.DATABASE_NAME
         ).fallbackToDestructiveMigration().build()
 
-        spinnerSubcategoria = findViewById(R.id.spinnerSubcategoria)
-        listViewProductos = findViewById(R.id.listViewProductos)
+        productoId = intent.getIntExtra("productoId", 0)
 
-        cargarSubcategorias()
+        etNombre = findViewById(R.id.etNombre)
+        etPrecio = findViewById(R.id.etPrecio)
+        etCosto = findViewById(R.id.etCosto)
+        btnGuardar = findViewById(R.id.btnGuardar)
+        listViewPersonalizaciones = findViewById(R.id.listViewPersonalizaciones)
+        btnAgregarPersonalizacion = findViewById(R.id.btnAgregarPersonalizacion)
+
+        // Cargar datos del producto
+        cargarProducto()
+        cargarPersonalizaciones()
+
+        btnGuardar.setOnClickListener {
+            guardarCambios()
+        }
+
+        btnAgregarPersonalizacion.setOnClickListener {
+            mostrarDialogAgregarPersonalizacion()
+        }
+
+        listViewPersonalizaciones.setOnItemClickListener { _, _, position, _ ->
+            val personalizacion = listaPersonalizaciones[position]
+            mostrarDialogEditarPersonalizacion(personalizacion)
+        }
+
+        listViewPersonalizaciones.setOnItemLongClickListener { _, _, position, _ ->
+            val personalizacion = listaPersonalizaciones[position]
+            eliminarPersonalizacion(personalizacion)
+            true
+        }
     }
 
-    private fun cargarSubcategorias() {
+    private fun cargarProducto() {
         lifecycleScope.launch {
-            listaSubcategorias = db.subcategoriaDao().obtenerTodas()
-            val nombres = listaSubcategorias.map { it.nombre }
-
+            val producto = db.productoDao().obtenerPorId(productoId)
             runOnUiThread {
-                val adaptador = ArrayAdapter(this@VerEditarProductosActivity, android.R.layout.simple_spinner_item, nombres)
-                adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinnerSubcategoria.adapter = adaptador
-
-                spinnerSubcategoria.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                        val subcategoriaSeleccionada = nombres[position]
-                        cargarProductos(subcategoriaSeleccionada)
-                    }
-
-                    override fun onNothingSelected(parent: AdapterView<*>?) {}
+                if (producto != null) {
+                    etNombre.setText(producto.nombre)
+                    etPrecio.setText(producto.precioPublico.toString())
+                    etCosto.setText(producto.costoUnitario.toString())
+                } else {
+                    Toast.makeText(
+                        this@VerEditarProductosActivity,
+                        "Error: no se encontró el producto con ID $productoId",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish() // Cerramos la pantalla para evitar seguir con datos vacíos
                 }
             }
         }
     }
 
-    private fun cargarProductos(nombreSub: String) {
+    private fun cargarPersonalizaciones() {
         lifecycleScope.launch {
-            listaProductos = db.productoDao().obtenerPorCategoria(nombreSub)
-            val nombres = listaProductos.map { "${it.nombre}  -  $${it.precioPublico}" }
-
+            listaPersonalizaciones.clear()
+            listaPersonalizaciones.addAll(db.personalizacionDao().obtenerPorProducto(productoId))
+            val nombres = listaPersonalizaciones.map {
+                "${it.descripcion} (+$${"%.2f".format(it.costoExtra)})"
+            }
             runOnUiThread {
-                val adaptador = ArrayAdapter(this@VerEditarProductosActivity, android.R.layout.simple_list_item_1, nombres)
-                listViewProductos.adapter = adaptador
-
-                listViewProductos.setOnItemClickListener { _, _, position, _ ->
-                    mostrarDialogEditarProducto(listaProductos[position])
-                }
+                adaptador = ArrayAdapter(this@VerEditarProductosActivity, android.R.layout.simple_list_item_1, nombres)
+                listViewPersonalizaciones.adapter = adaptador
             }
         }
     }
 
-    private fun mostrarDialogEditarProducto(producto: ProductoEntity) {
-        val view = layoutInflater.inflate(R.layout.dialog_editar_producto, null)
-        val etNombre = view.findViewById<EditText>(R.id.etNombre)
-        val etPrecio = view.findViewById<EditText>(R.id.etPrecio)
-        val etCosto = view.findViewById<EditText>(R.id.etCosto)
-        val spinnerCategoria = view.findViewById<Spinner>(R.id.spinnerCategoria)
-
-        etNombre.setText(producto.nombre)
-        etPrecio.setText(producto.precioPublico.toString())
-        etCosto.setText(producto.costoUnitario.toString())
-
-        lifecycleScope.launch {
-            val categorias = db.subcategoriaDao().obtenerTodas()
-            val nombres = categorias.map { it.nombre }
-
-            runOnUiThread {
-                val adaptador = ArrayAdapter(this@VerEditarProductosActivity, android.R.layout.simple_spinner_item, nombres)
-                adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinnerCategoria.adapter = adaptador
-                spinnerCategoria.setSelection(nombres.indexOf(producto.categoria))
-            }
-        }
+    private fun mostrarDialogAgregarPersonalizacion() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_personalizacion, null)
+        val etDescripcion = dialogView.findViewById<EditText>(R.id.etDescripcion)
+        val etCosto = dialogView.findViewById<EditText>(R.id.etCostoExtra)
 
         AlertDialog.Builder(this)
-            .setTitle("Editar producto")
-            .setView(view)
+            .setTitle("Agregar personalización")
+            .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
-                val nuevoNombre = etNombre.text.toString().trim()
-                val nuevoPrecio = etPrecio.text.toString().toDoubleOrNull() ?: 0.0
+                val descripcion = etDescripcion.text.toString().trim()
+                val costo = etCosto.text.toString().toDoubleOrNull() ?: 0.0
+
+                if (descripcion.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        db.personalizacionDao().insertar(
+                            PersonalizacionEntity(
+                                productoId = productoId,
+                                descripcion = descripcion,
+                                costoExtra = costo
+                            )
+                        )
+                        cargarPersonalizaciones()
+                    }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun mostrarDialogEditarPersonalizacion(personalizacion: PersonalizacionEntity) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_personalizacion, null)
+        val etDescripcion = dialogView.findViewById<EditText>(R.id.etDescripcion)
+        val etCosto = dialogView.findViewById<EditText>(R.id.etCostoExtra)
+
+        etDescripcion.setText(personalizacion.descripcion)
+        etCosto.setText(personalizacion.costoExtra.toString())
+
+        AlertDialog.Builder(this)
+            .setTitle("Editar personalización")
+            .setView(dialogView)
+            .setPositiveButton("Actualizar") { _, _ ->
+                val nuevaDescripcion = etDescripcion.text.toString().trim()
                 val nuevoCosto = etCosto.text.toString().toDoubleOrNull() ?: 0.0
-                val nuevaCategoria = spinnerCategoria.selectedItem.toString()
 
                 lifecycleScope.launch {
-                    db.productoDao().actualizar(
-                        producto.copy(
-                            nombre = nuevoNombre,
-                            precioPublico = nuevoPrecio,
-                            costoUnitario = nuevoCosto,
-                            categoria = nuevaCategoria
+                    db.personalizacionDao().actualizar(
+                        personalizacion.copy(
+                            descripcion = nuevaDescripcion,
+                            costoExtra = nuevoCosto
                         )
                     )
-                    cargarProductos(nuevaCategoria)
+                    cargarPersonalizaciones()
                 }
             }
-            .setNegativeButton("Eliminar") { _, _ ->
-                lifecycleScope.launch {
-                    db.productoDao().eliminar(producto)
-                    cargarProductos(producto.categoria)
-                }
-            }
-            .setNeutralButton("Cancelar", null)
+            .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun eliminarPersonalizacion(personalizacion: PersonalizacionEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar personalización")
+            .setMessage("¿Deseas eliminar '${personalizacion.descripcion}'?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                lifecycleScope.launch {
+                    db.personalizacionDao().eliminar(personalizacion)
+                    cargarPersonalizaciones()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun guardarCambios() {
+        lifecycleScope.launch {
+            val nombre = etNombre.text.toString()
+            val precio = etPrecio.text.toString().toDoubleOrNull() ?: 0.0
+            val costo = etCosto.text.toString().toDoubleOrNull() ?: 0.0
+
+            val producto = db.productoDao().obtenerPorId(productoId)
+            db.productoDao().actualizar(producto.copy(nombre = nombre, precioPublico = precio, costoUnitario = costo))
+            runOnUiThread {
+                Toast.makeText(this@VerEditarProductosActivity, "Producto actualizado", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
     }
 }

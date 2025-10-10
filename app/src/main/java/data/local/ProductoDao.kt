@@ -22,4 +22,7 @@ interface ProductoDao {
 
     @Delete
     suspend fun eliminar(producto: ProductoEntity)
+
+    @Query("SELECT * FROM productos WHERE id = :id LIMIT 1")
+    suspend fun obtenerPorId(id: Int): ProductoEntity
 }

@@ -43,6 +43,7 @@
         <activity android:name=".ui.historial.HistorialVentasActivity" />
         <activity android:name=".ui.historial.VentasDelDiaActivity" />
         <activity android:name=".ui.historial.EstadisticasDiaActivity" />
+        <activity android:name=".ui.vereditarproductos.ListaProductosActivity" />
 
 
     </application>
