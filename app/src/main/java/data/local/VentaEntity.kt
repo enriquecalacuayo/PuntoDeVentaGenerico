@@ -9,5 +9,6 @@ data class VentaEntity(
     val productosVendidos: String,
     val totalVenta: Double,
     val ganancia: Double,
-    val fecha: Long = System.currentTimeMillis()
+    val fecha: Long = System.currentTimeMillis(),
+    val pagoConTarjeta: Boolean = false
 )

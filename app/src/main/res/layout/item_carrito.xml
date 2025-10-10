@@ -98,7 +98,21 @@
                 android:src="@drawable/ic_delete"
                 android:tint="#B00020"
                 android:contentDescription="Eliminar" />
+
+            <Button
+                android:id="@+id/btnAgregarComentario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agregar comentario"
+                android:textSize="12sp"
+                android:padding="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_gravity="end"/>
+
         </LinearLayout>
+
+
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

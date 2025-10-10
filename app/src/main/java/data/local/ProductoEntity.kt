@@ -9,5 +9,6 @@ data class ProductoEntity(
     val nombre: String,
     val categoria: String,
     val precioPublico: Double,
-    val costoUnitario: Double
+    val costoUnitario: Double,
+    val ocultarEnComandas: Boolean = false // 👈 nuevo campo
 )

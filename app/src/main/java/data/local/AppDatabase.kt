@@ -14,7 +14,7 @@ import androidx.room.RoomDatabase
         CajaDiaEntity::class,
         GastoEntity::class
     ],
-    version = 5, // 🔥 Sube la versión
+    version = 8, // 🔥 Sube la versión
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

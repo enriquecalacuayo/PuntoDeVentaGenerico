@@ -13,6 +13,8 @@ class EstadisticasDiaActivity : AppCompatActivity() {
 
     private lateinit var db: AppDatabase
     private lateinit var txtTotalVentas: TextView
+    private lateinit var txtTotalEfectivo: TextView
+    private lateinit var txtTotalTarjeta: TextView
     private lateinit var txtGanancia: TextView
     private lateinit var layoutProductos: LinearLayout
     private lateinit var etCajaInicio: EditText
@@ -28,6 +30,8 @@ class EstadisticasDiaActivity : AppCompatActivity() {
 
     private var fechaSeleccionada: Long = 0L
     private var totalVentas = 0.0
+    private var totalEfectivo = 0.0
+    private var totalTarjeta = 0.0
     private var totalGanancia = 0.0
     private val listaGastos = mutableListOf<GastoEntity>()
 
@@ -36,6 +40,8 @@ class EstadisticasDiaActivity : AppCompatActivity() {
         setContentView(R.layout.activity_estadisticas_dia)
 
         txtTotalVentas = findViewById(R.id.txtTotalVentas)
+        txtTotalEfectivo = findViewById(R.id.txtTotalEfectivo) // 👈 agrega en tu XML
+        txtTotalTarjeta = findViewById(R.id.txtTotalTarjeta)   // 👈 agrega en tu XML
         txtGanancia = findViewById(R.id.txtGanancia)
         layoutProductos = findViewById(R.id.layoutProductosVendidos)
         etCajaInicio = findViewById(R.id.etCajaInicio)
@@ -47,6 +53,23 @@ class EstadisticasDiaActivity : AppCompatActivity() {
         etMontoGasto = findViewById(R.id.etMontoGasto)
         btnAgregarGasto = findViewById(R.id.btnAgregarGasto)
         listViewGastos = findViewById(R.id.listViewGastos)
+
+        // Detectar cambios en los campos de caja
+        etCajaInicio.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                calcularResultado(listaGastos.sumOf { it.monto })
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        etCajaFinal.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                calcularResultado(listaGastos.sumOf { it.monto })
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
 
         db = Room.databaseBuilder(
             applicationContext,
@@ -81,11 +104,17 @@ class EstadisticasDiaActivity : AppCompatActivity() {
             listaGastos.clear()
             listaGastos.addAll(gastos)
 
+            // 🧮 Cálculo general
             totalVentas = ventas.sumOf { it.totalVenta }
             totalGanancia = ventas.sumOf { it.ganancia }
 
+            // 💳 Separar ventas según tipo de pago
+            totalTarjeta = ventas.filter { it.pagoConTarjeta }.sumOf { it.totalVenta }
+            totalEfectivo = ventas.filter { !it.pagoConTarjeta }.sumOf { it.totalVenta }
+
             val totalGastos = listaGastos.sumOf { it.monto }
 
+            // Contador de productos vendidos
             val contador = mutableMapOf<String, Int>()
             ventas.forEach { venta ->
                 venta.productosVendidos.split("\n").forEach { linea ->
@@ -102,6 +131,8 @@ class EstadisticasDiaActivity : AppCompatActivity() {
 
             runOnUiThread {
                 txtTotalVentas.text = "💵 Total vendido: $${"%.2f".format(totalVentas)}"
+                txtTotalEfectivo.text = "🪙 En caja (efectivo): $${"%.2f".format(totalEfectivo)}"
+                txtTotalTarjeta.text = "💳 Pagos con tarjeta: $${"%.2f".format(totalTarjeta)}"
                 txtGanancia.text = "📈 Ganancia neta: $${"%.2f".format(totalGanancia)}"
 
                 layoutProductos.removeAllViews()
@@ -165,7 +196,13 @@ class EstadisticasDiaActivity : AppCompatActivity() {
         val inicio = etCajaInicio.text.toString().toDoubleOrNull() ?: 0.0
         val final = etCajaFinal.text.toString().toDoubleOrNull() ?: 0.0
 
-        val esperado = inicio + totalVentas - totalGastos
+        if (inicio == 0.0 && final == 0.0 && totalVentas == 0.0) {
+            txtResultadoCaja.text = ""
+            return
+        }
+
+        // ✅ Ahora solo cuenta efectivo, no tarjeta
+        val esperado = inicio + totalEfectivo - totalGastos
         val diferencia = final - esperado
 
         val textoResultado = if (diferencia >= 0)
@@ -189,10 +226,9 @@ class EstadisticasDiaActivity : AppCompatActivity() {
             db.cajaDiaDao().insertar(caja)
 
             runOnUiThread {
+                calcularResultado(listaGastos.sumOf { it.monto })
                 Toast.makeText(this@EstadisticasDiaActivity, "Registro de caja guardado ✅", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
-
-

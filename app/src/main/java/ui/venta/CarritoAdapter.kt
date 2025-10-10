@@ -5,11 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.CarritoItem
+import android.app.AlertDialog
+import android.widget.CheckBox
+import android.widget.EditText
+
 
 class CarritoAdapter(
     private val context: Context,
@@ -34,6 +39,8 @@ class CarritoAdapter(
         val btnSumar = view.findViewById<ImageButton>(R.id.btnSumar)
         val btnRestar = view.findViewById<ImageButton>(R.id.btnRestar)
         val btnEliminar = view.findViewById<ImageButton>(R.id.btnEliminar)
+        val btnAgregarComentario = view.findViewById<Button>(R.id.btnAgregarComentario)
+
 
         // ✅ Mostrar solo el nombre (con o sin paréntesis, según ya venga)
         txtNombreProducto.text = item.producto.nombre
@@ -79,6 +86,22 @@ class CarritoAdapter(
             notifyDataSetChanged()
             onCarritoActualizado()
             Toast.makeText(context, "Producto eliminado del carrito", Toast.LENGTH_SHORT).show()
+        }
+
+        btnAgregarComentario.setOnClickListener {
+            val input = EditText(context)
+            input.hint = "Ej. bien caliente, sin azúcar..."
+            input.setText(item.comentario)
+
+            AlertDialog.Builder(context)
+                .setTitle("Agregar comentario")
+                .setView(input)
+                .setPositiveButton("Guardar") { _, _ ->
+                    item.comentario = input.text.toString().trim()
+                    notifyDataSetChanged()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
         }
 
         return view

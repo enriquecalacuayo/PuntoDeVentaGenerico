@@ -33,6 +33,8 @@ class IniciarVentaActivity : AppCompatActivity() {
     private lateinit var db: AppDatabase
     private lateinit var txtTotalCarrito: TextView
 
+    private lateinit var chkPagoConTarjeta: CheckBox
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_iniciar_venta)
@@ -42,6 +44,8 @@ class IniciarVentaActivity : AppCompatActivity() {
         listViewCarrito = findViewById(R.id.listViewCarrito)
         btnEnviarComanda = findViewById(R.id.btnEnviarComanda)
         txtTotalCarrito = findViewById(R.id.txtTotalCarrito)
+        chkPagoConTarjeta = findViewById(R.id.chkPagoConTarjeta)
+
 
         // Inicializar base de datos
         db = Room.databaseBuilder(
@@ -200,8 +204,11 @@ class IniciarVentaActivity : AppCompatActivity() {
 
             // 1️⃣ Enviar comandas a cocina
             for (item in carrito) {
-                val descripcion = item.descripcionCompleta()
-                db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
+                // Evitar enviar productos ocultos a comandas
+                if (!item.producto.ocultarEnComandas) {
+                    val descripcion = item.descripcionCompleta()
+                    db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
+                }
             }
 
             // 2️⃣ Guardar la venta en la tabla de ventas
@@ -217,7 +224,8 @@ class IniciarVentaActivity : AppCompatActivity() {
             val venta = VentaEntity(
                 productosVendidos = productosResumen,
                 totalVenta = totalVenta,
-                ganancia = ganancia
+                ganancia = ganancia,
+                pagoConTarjeta = chkPagoConTarjeta.isChecked // 💳 se guarda el tipo de pago
             )
 
             db.ventaDao().insertar(venta)

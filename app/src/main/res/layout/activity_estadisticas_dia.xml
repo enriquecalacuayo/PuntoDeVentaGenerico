@@ -133,6 +133,23 @@
             android:textSize="16sp"
             android:layout_marginTop="8dp" />
 
+        <TextView
+            android:id="@+id/txtTotalEfectivo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🪙 En caja (efectivo): $0.00"
+            android:textSize="16sp"
+            android:paddingTop="4dp" />
+
+        <TextView
+            android:id="@+id/txtTotalTarjeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💳 Pagos con tarjeta: $0.00"
+            android:textSize="16sp"
+            android:paddingBottom="4dp" />
+
+
         <Button
             android:id="@+id/btnGuardarCaja"
             android:layout_width="match_parent"

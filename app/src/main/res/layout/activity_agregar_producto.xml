@@ -34,6 +34,14 @@
             android:inputType="numberDecimal"
             android:hint="Costo unitario" />
 
+        <CheckBox
+            android:id="@+id/chkOcultarEnComandas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No mostrar en comandas"
+            android:layout_marginTop="8dp"/>
+
+
         <!-- Subcategoría -->
         <TextView
             android:layout_width="match_parent"
@@ -107,6 +115,8 @@
             android:layout_height="200dp"
             android:divider="@android:color/darker_gray"
             android:dividerHeight="1dp" />
+
+
 
 
 

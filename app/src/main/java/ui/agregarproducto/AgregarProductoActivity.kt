@@ -36,6 +36,7 @@ class AgregarProductoActivity : AppCompatActivity() {
     private lateinit var etPrecioPublico: EditText
     private lateinit var etCostoUnitario: EditText
     private lateinit var btnGuardar: Button
+    private lateinit var chkOcultarEnComandas: CheckBox // 👈 Nuevo campo
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +55,7 @@ class AgregarProductoActivity : AppCompatActivity() {
         etPrecioPublico = findViewById(R.id.etPrecioPublico)
         etCostoUnitario = findViewById(R.id.etCostoUnitario)
         btnGuardar = findViewById(R.id.btnGuardarProducto)
+        chkOcultarEnComandas = findViewById(R.id.chkOcultarEnComandas) // 👈 Referencia al nuevo checkbox
 
         // Subcategorías
         spinnerSubcategoria = findViewById(R.id.spinnerSubcategoria)
@@ -79,7 +81,7 @@ class AgregarProductoActivity : AppCompatActivity() {
         // Cargar historial de personalizaciones previas
         cargarHistorialPersonalizaciones()
 
-        // Cuando se elija una sugerencia
+        // Cuando se elija una sugerencia del historial
         etNuevaPersonalizacion.setOnItemClickListener { _, _, position, _ ->
             val seleccion = listaHistorial[position]
             etNuevaPersonalizacion.setText(seleccion.descripcion)
@@ -197,6 +199,7 @@ class AgregarProductoActivity : AppCompatActivity() {
         val nombre = etNombre.text.toString().trim()
         val precioPublico = etPrecioPublico.text.toString().toDoubleOrNull() ?: 0.0
         val costoUnitario = etCostoUnitario.text.toString().toDoubleOrNull() ?: 0.0
+        val ocultarEnComandas = chkOcultarEnComandas.isChecked // 👈 valor del checkbox
 
         if (nombre.isEmpty()) {
             Toast.makeText(this, "Ingresa un nombre de producto", Toast.LENGTH_SHORT).show()
@@ -213,7 +216,8 @@ class AgregarProductoActivity : AppCompatActivity() {
                 nombre = nombre,
                 categoria = subcategoriaSeleccionada?.nombre ?: "Sin categoría",
                 precioPublico = precioPublico,
-                costoUnitario = costoUnitario
+                costoUnitario = costoUnitario,
+                ocultarEnComandas = ocultarEnComandas // 👈 se guarda el valor
             )
 
             val productoId = db.productoDao().insertar(producto).toInt()
@@ -233,7 +237,11 @@ class AgregarProductoActivity : AppCompatActivity() {
             }
 
             runOnUiThread {
-                Toast.makeText(this@AgregarProductoActivity, "Producto guardado correctamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@AgregarProductoActivity,
+                    "Producto guardado correctamente",
+                    Toast.LENGTH_SHORT
+                ).show()
                 limpiarCampos()
                 cargarHistorialPersonalizaciones()
             }
@@ -249,5 +257,6 @@ class AgregarProductoActivity : AppCompatActivity() {
         listaPersonalizaciones.clear()
         adaptadorPersonalizaciones.clear()
         adaptadorPersonalizaciones.notifyDataSetChanged()
+        chkOcultarEnComandas.isChecked = false // 👈 limpiar también el checkbox
     }
 }

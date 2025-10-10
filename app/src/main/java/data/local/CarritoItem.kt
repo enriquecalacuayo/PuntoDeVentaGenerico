@@ -3,22 +3,31 @@ package com.example.puntodeventagenerico.data.local
 data class CarritoItem(
     val producto: ProductoEntity,
     var cantidad: Int = 1,
-    val personalizaciones: List<PersonalizacionEntity> = emptyList()
+    val personalizaciones: List<PersonalizacionEntity> = emptyList(),
+    var comentario: String = "",
+    var pagoConTarjeta: Boolean = false // 💳 Nuevo campo
 ) {
-    // ✅ Ahora solo devuelve el precio del producto * cantidad
-    // No suma los costos extra otra vez porque ya están incluidos
     fun precioTotal(): Double {
         return producto.precioPublico * cantidad
     }
 
-    // ✅ Mantén esta función solo para mostrar el texto completo en el carrito
     fun descripcionCompleta(): String {
-        val extras = if (personalizaciones.isNotEmpty()) {
-            personalizaciones.joinToString(", ") { it.descripcion }
+        val baseNombre = if (producto.nombre.contains("(")) {
+            producto.nombre
         } else {
-            "Sin personalización"
+            val extras = personalizaciones.joinToString(", ") { it.descripcion }
+            if (extras.isNotEmpty()) "${producto.nombre} ($extras)" else producto.nombre
         }
-        return "${producto.nombre} ($extras)"
+
+        // 👇 Muestra comentario si existe
+        val comentarioTexto = if (comentario.isNotBlank()) "\n🗒️ $comentario" else ""
+
+        // 👇 Muestra tipo de pago (tarjeta o efectivo)
+        val pagoTexto = if (pagoConTarjeta) "\n💳 Pago con tarjeta" else ""
+
+        return baseNombre + comentarioTexto + pagoTexto
     }
 }
+
+
 
