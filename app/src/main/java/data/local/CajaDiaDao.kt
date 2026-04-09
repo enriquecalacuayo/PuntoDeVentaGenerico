@@ -13,4 +13,10 @@ interface CajaDiaDao {
 
     @Query("SELECT * FROM caja_dia WHERE fecha = :fecha LIMIT 1")
     suspend fun obtenerPorFecha(fecha: Long): CajaDiaEntity?
+
+    @Query("SELECT * FROM caja_dia")
+    suspend fun obtenerTodas(): List<CajaDiaEntity>
+
+    @Query("DELETE FROM caja_dia")
+    suspend fun eliminarTodas()
 }

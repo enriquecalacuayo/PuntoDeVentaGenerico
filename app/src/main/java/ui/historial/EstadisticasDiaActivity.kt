@@ -74,7 +74,7 @@ class EstadisticasDiaActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
+            ProfileManager.getDatabaseName(applicationContext)
         ).fallbackToDestructiveMigration().build()
 
         fechaSeleccionada = intent.getLongExtra("fecha", 0L)

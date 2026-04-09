@@ -16,4 +16,10 @@ interface GastoDao {
 
     @Query("DELETE FROM gastos_dia WHERE id = :id")
     suspend fun eliminarPorId(id: Int)
+
+    @Query("SELECT * FROM gastos_dia")
+    suspend fun obtenerTodos(): List<GastoEntity>
+
+    @Query("DELETE FROM gastos_dia")
+    suspend fun eliminarTodos()
 }

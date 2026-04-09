@@ -12,4 +12,7 @@ interface SubcategoriaDao {
 
     @Query("SELECT * FROM subcategorias ORDER BY nombre ASC")
     suspend fun obtenerTodas(): List<SubcategoriaEntity>
+
+    @Query("DELETE FROM subcategorias")
+    suspend fun eliminarTodas()
 }

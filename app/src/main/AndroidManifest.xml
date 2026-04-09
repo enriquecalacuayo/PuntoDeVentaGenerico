@@ -44,6 +44,10 @@
         <activity android:name=".ui.historial.VentasDelDiaActivity" />
         <activity android:name=".ui.historial.EstadisticasDiaActivity" />
         <activity android:name=".ui.vereditarproductos.ListaProductosActivity" />
+        <activity
+            android:name=".ui.perfiles.SeleccionPerfilActivity"
+            android:exported="false"
+            android:label="Seleccionar Perfil" />
 
 
     </application>

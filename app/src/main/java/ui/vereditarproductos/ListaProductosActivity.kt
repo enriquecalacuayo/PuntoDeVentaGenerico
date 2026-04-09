@@ -10,6 +10,7 @@ import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
 import com.example.puntodeventagenerico.data.local.ProductoEntity
+import com.example.puntodeventagenerico.data.local.ProfileManager
 import kotlinx.coroutines.launch
 
 class ListaProductosActivity : AppCompatActivity() {
@@ -26,7 +27,7 @@ class ListaProductosActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
+            ProfileManager.getDatabaseName(applicationContext)
         ).fallbackToDestructiveMigration().build()
 
         listViewProductos = findViewById(R.id.listViewProductos)

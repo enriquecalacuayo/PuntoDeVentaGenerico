@@ -14,11 +14,34 @@
         android:id="@+id/tvTitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Punto de Venta Genérico"
+        android:text="Punto de Venta"
         android:textColor="#5B3A29"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvPerfilActivo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Perfil: —"
+        android:textColor="#8B6045"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnCambiarPerfil"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cambiar perfil"
+        android:backgroundTint="#A07850"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginBottom="28dp" />
 
     <Button
         android:id="@+id/btnIniciarVenta"
@@ -53,4 +76,44 @@
         android:layout_height="wrap_content"
         android:text="Ver comandas"
         android:layout_marginTop="12dp" />
+
+    <!-- Separador visual -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#D4B896"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Fila de backup -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btnExportarBackup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Exportar backup"
+            android:backgroundTint="#4A7C59"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:layout_marginEnd="6dp" />
+
+        <Button
+            android:id="@+id/btnImportarBackup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Importar backup"
+            android:backgroundTint="#2E6E9E"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
 </LinearLayout>

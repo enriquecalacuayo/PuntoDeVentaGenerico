@@ -10,6 +10,7 @@ import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
 import com.example.puntodeventagenerico.data.local.CarritoItem
+import com.example.puntodeventagenerico.data.local.ProfileManager
 import com.example.puntodeventagenerico.data.local.ComandaEntity
 import com.example.puntodeventagenerico.data.local.ProductoEntity
 import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
@@ -51,7 +52,7 @@ class IniciarVentaActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
+            ProfileManager.getDatabaseName(applicationContext)
         )
             .fallbackToDestructiveMigration()
             .build()
@@ -197,7 +198,7 @@ class IniciarVentaActivity : AppCompatActivity() {
             val db = Room.databaseBuilder(
                 applicationContext,
                 AppDatabase::class.java,
-                AppDatabase.DATABASE_NAME
+                ProfileManager.getDatabaseName(applicationContext)
             )
                 .fallbackToDestructiveMigration()
                 .build()

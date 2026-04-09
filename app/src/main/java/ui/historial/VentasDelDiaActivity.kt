@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
+import com.example.puntodeventagenerico.data.local.ProfileManager
 import com.example.puntodeventagenerico.data.local.VentaEntity
 import kotlinx.coroutines.launch
 
@@ -30,8 +31,8 @@ class VentasDelDiaActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
-        ).build()
+            ProfileManager.getDatabaseName(applicationContext)
+        ).fallbackToDestructiveMigration().build()
 
         fechaSeleccionada = intent.getLongExtra("fecha", 0L)
 

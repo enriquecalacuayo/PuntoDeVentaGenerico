@@ -12,4 +12,7 @@ interface ComandaDao {
 
     @Delete
     suspend fun eliminar(comanda: ComandaEntity)
+
+    @Query("DELETE FROM comandas")
+    suspend fun eliminarTodas()
 }

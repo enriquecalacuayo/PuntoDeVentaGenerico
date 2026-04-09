@@ -45,7 +45,7 @@ class AgregarProductoActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "punto_venta_db"
+            ProfileManager.getDatabaseName(applicationContext)
         )
             .fallbackToDestructiveMigration()
             .build()

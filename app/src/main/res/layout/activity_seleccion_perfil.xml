@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="32dp"
+    android:background="#FFF7E9">
+
+    <TextView
+        android:id="@+id/tvTituloPerfiles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Punto de Venta"
+        android:textColor="#5B3A29"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvSubtituloPerfiles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecciona un perfil para continuar"
+        android:textColor="#8B6045"
+        android:textSize="15sp"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Lista de perfiles -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/tvPerfilesLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perfiles disponibles"
+                android:textColor="#5B3A29"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp" />
+
+            <ListView
+                android:id="@+id/lvPerfiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="#E8D5C0"
+                android:dividerHeight="1dp" />
+
+            <TextView
+                android:id="@+id/tvSinPerfiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No hay perfiles creados aun.\nCrea tu primer perfil abajo."
+                android:textColor="#A08060"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:padding="24dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Botón crear nuevo perfil -->
+    <Button
+        android:id="@+id/btnCrearPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="+ Crear nuevo perfil"
+        android:backgroundTint="#6D4C2A"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:padding="14dp" />
+
+</LinearLayout>

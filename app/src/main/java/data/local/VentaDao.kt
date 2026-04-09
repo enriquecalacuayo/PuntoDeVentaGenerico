@@ -24,4 +24,7 @@ interface VentaDao {
 
     @Query("DELETE FROM ventas WHERE id = :id")
     suspend fun eliminarPorId(id: Int)
+
+    @Query("DELETE FROM ventas")
+    suspend fun eliminarTodas()
 }

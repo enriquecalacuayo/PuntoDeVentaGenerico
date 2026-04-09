@@ -10,6 +10,7 @@ import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
 import com.example.puntodeventagenerico.data.local.ComandaEntity
+import com.example.puntodeventagenerico.data.local.ProfileManager
 import kotlinx.coroutines.launch
 
 class VerComandasActivity : AppCompatActivity() {
@@ -26,8 +27,8 @@ class VerComandasActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "punto_venta_db"
-        ).build()
+            ProfileManager.getDatabaseName(applicationContext)
+        ).fallbackToDestructiveMigration().build()
 
         recyclerView = findViewById(R.id.recyclerComandas)
         recyclerView.layoutManager = LinearLayoutManager(this)

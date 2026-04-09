@@ -11,4 +11,7 @@ interface HistorialPersonalizacionDao {
 
     @Query("SELECT * FROM historial_personalizacion ORDER BY id DESC")
     suspend fun obtenerTodos(): List<HistorialPersonalizacionEntity>
+
+    @Query("DELETE FROM historial_personalizacion")
+    suspend fun eliminarTodos()
 }

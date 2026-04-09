@@ -16,4 +16,10 @@ interface PersonalizacionDao {
 
     @Query("SELECT * FROM personalizaciones WHERE productoId = :productoId")
     suspend fun obtenerPorProducto(productoId: Int): List<PersonalizacionEntity>
+
+    @Query("SELECT * FROM personalizaciones")
+    suspend fun obtenerTodas(): List<PersonalizacionEntity>
+
+    @Query("DELETE FROM personalizaciones")
+    suspend fun eliminarTodas()
 }

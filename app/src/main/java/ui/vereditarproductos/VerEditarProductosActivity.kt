@@ -9,6 +9,7 @@ import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
 import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
+import com.example.puntodeventagenerico.data.local.ProfileManager
 import kotlinx.coroutines.launch
 
 class VerEditarProductosActivity : AppCompatActivity() {
@@ -34,7 +35,7 @@ class VerEditarProductosActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
+            ProfileManager.getDatabaseName(applicationContext)
         ).fallbackToDestructiveMigration().build()
 
         productoId = intent.getIntExtra("productoId", 0)
