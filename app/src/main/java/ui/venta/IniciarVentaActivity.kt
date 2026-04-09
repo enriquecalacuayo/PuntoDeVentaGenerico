@@ -16,6 +16,7 @@ import androidx.room.Room
 import com.example.puntodeventagenerico.R
 import com.example.puntodeventagenerico.data.local.AppDatabase
 import com.example.puntodeventagenerico.data.local.CarritoItem
+import com.example.puntodeventagenerico.data.local.ComandaNetworkManager
 import com.example.puntodeventagenerico.data.local.ProfileManager
 import com.example.puntodeventagenerico.data.local.ComandaEntity
 import com.example.puntodeventagenerico.data.local.ProductoEntity
@@ -23,7 +24,9 @@ import com.example.puntodeventagenerico.data.local.PersonalizacionEntity
 import com.example.puntodeventagenerico.data.local.VentaEntity
 import com.example.puntodeventagenerico.ui.comandas.VerComandasActivity
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class IniciarVentaActivity : AppCompatActivity() {
 
@@ -298,7 +301,9 @@ class IniciarVentaActivity : AppCompatActivity() {
 
 
     private fun enviarComanda() {
-        lifecycleScope.launch {
+        // Dispatchers.IO — requerido para operaciones de red (DatagramSocket)
+        // y operaciones de base de datos
+        lifecycleScope.launch(Dispatchers.IO) {
             val db = Room.databaseBuilder(
                 applicationContext,
                 AppDatabase::class.java,
@@ -307,12 +312,12 @@ class IniciarVentaActivity : AppCompatActivity() {
                 .fallbackToDestructiveMigration()
                 .build()
 
-            // 1️⃣ Enviar comandas a cocina
+            // 1️⃣ Guardar en DB local y enviar por red a la tablet de cocina
             for (item in carrito) {
-                // Evitar enviar productos ocultos a comandas
                 if (!item.producto.ocultarEnComandas) {
                     val descripcion = item.descripcionCompleta()
                     db.comandaDao().insertar(ComandaEntity(descripcion = descripcion))
+                    ComandaNetworkManager.enviar(applicationContext, descripcion)
                 }
             }
 
@@ -330,16 +335,15 @@ class IniciarVentaActivity : AppCompatActivity() {
                 productosVendidos = productosResumen,
                 totalVenta = totalVenta,
                 ganancia = ganancia,
-                pagoConTarjeta = chkPagoConTarjeta.isChecked // 💳 se guarda el tipo de pago
+                pagoConTarjeta = chkPagoConTarjeta.isChecked
             )
 
             db.ventaDao().insertar(venta)
 
-            // 3️⃣ Limpiar carrito y campos de cobro
-            carrito.clear()
-            carritoAdapter.notifyDataSetChanged()
-
-            runOnUiThread {
+            // 3️⃣ Volver al hilo principal para actualizar UI
+            withContext(Dispatchers.Main) {
+                carrito.clear()
+                carritoAdapter.notifyDataSetChanged()
                 etPagoCliente.text?.clear()
                 txtCambio.text = "$0.00"
                 txtSugerenciaCambio.visibility = View.GONE
@@ -351,9 +355,7 @@ class IniciarVentaActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // 4️⃣ Ir directamente a la vista de comandas
-                val intent = Intent(this@IniciarVentaActivity, VerComandasActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this@IniciarVentaActivity, VerComandasActivity::class.java))
                 finish()
             }
         }

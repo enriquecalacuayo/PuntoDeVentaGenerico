@@ -3,14 +3,31 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:padding="8dp"
     android:background="@drawable/bg_item">
 
     <TextView
         android:id="@+id/txtDescripcionComanda"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:textSize="16sp"
         android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/btnAtender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Atender"
+        android:textSize="13sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#FFFFFF"
+        android:visibility="gone"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginStart="8dp"/>
 
 </LinearLayout>
