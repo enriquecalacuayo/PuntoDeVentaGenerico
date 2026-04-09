@@ -2,6 +2,12 @@ package com.example.puntodeventagenerico.ui.venta
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.KeyEvent
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +41,13 @@ class IniciarVentaActivity : AppCompatActivity() {
     private lateinit var txtTotalCarrito: TextView
 
     private lateinit var chkPagoConTarjeta: CheckBox
+    private lateinit var layoutCobro: LinearLayout
+    private lateinit var etPagoCliente: EditText
+    private lateinit var txtCambio: TextView
+    private lateinit var txtSugerenciaCambio: TextView
+
+    // Denominaciones válidas en México (monedas y billetes)
+    private val denominaciones = listOf(5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +59,10 @@ class IniciarVentaActivity : AppCompatActivity() {
         btnEnviarComanda = findViewById(R.id.btnEnviarComanda)
         txtTotalCarrito = findViewById(R.id.txtTotalCarrito)
         chkPagoConTarjeta = findViewById(R.id.chkPagoConTarjeta)
+        layoutCobro = findViewById(R.id.layoutCobro)
+        etPagoCliente = findViewById(R.id.etPagoCliente)
+        txtCambio = findViewById(R.id.txtCambio)
+        txtSugerenciaCambio = findViewById(R.id.txtSugerenciaCambio)
 
 
         // Inicializar base de datos
@@ -92,6 +109,35 @@ class IniciarVentaActivity : AppCompatActivity() {
             }
         }
 
+        // Mostrar/ocultar sección de cobro según tipo de pago
+        chkPagoConTarjeta.setOnCheckedChangeListener { _, isCard ->
+            layoutCobro.visibility = if (isCard) View.GONE else View.VISIBLE
+            if (isCard) {
+                etPagoCliente.text?.clear()
+                txtCambio.text = "$0.00"
+                txtSugerenciaCambio.visibility = View.GONE
+            }
+        }
+
+        // Calcular cambio y sugerencia mientras el cajero escribe
+        etPagoCliente.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                actualizarCobro()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        // Cerrar teclado al presionar "Listo" en el teclado numérico
+        etPagoCliente.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(etPagoCliente.windowToken, 0)
+                true
+            } else false
+        }
+
         // Enviar comanda al presionar botón
         btnEnviarComanda.setOnClickListener {
             enviarComanda()
@@ -101,6 +147,64 @@ class IniciarVentaActivity : AppCompatActivity() {
     private fun actualizarTotalCarrito() {
         val total = carrito.sumOf { it.precioTotal() }
         txtTotalCarrito.text = "Total: $${"%.2f".format(total)}"
+        // Recalcular cobro si ya hay algo escrito
+        if (etPagoCliente.text.isNotEmpty()) actualizarCobro()
+    }
+
+    private fun actualizarCobro() {
+        val total = carrito.sumOf { it.precioTotal() }
+        val pagado = etPagoCliente.text.toString().toDoubleOrNull() ?: 0.0
+        val cambio = pagado - total
+
+        if (pagado <= 0.0) {
+            txtCambio.text = "$0.00"
+            txtCambio.setTextColor(getColor(android.R.color.holo_green_dark))
+            txtSugerenciaCambio.visibility = View.GONE
+            return
+        }
+
+        if (cambio < 0.0) {
+            txtCambio.text = "Faltan $${"%.2f".format(-cambio)}"
+            txtCambio.setTextColor(getColor(android.R.color.holo_red_dark))
+            txtSugerenciaCambio.visibility = View.GONE
+            return
+        }
+
+        txtCambio.text = "$${"%.2f".format(cambio)}"
+        txtCambio.setTextColor(getColor(android.R.color.holo_green_dark))
+
+        val sugerencia = calcularSugerencia(cambio)
+        if (sugerencia != null) {
+            txtSugerenciaCambio.text = "💡 $sugerencia"
+            txtSugerenciaCambio.visibility = View.VISIBLE
+        } else {
+            txtSugerenciaCambio.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Sugiere pedirle al cliente un monto adicional pequeño para devolver
+     * un billete cerrado de mayor denominación en lugar de monedas sueltas.
+     *
+     * Ejemplo: cambio = $25 → pedir $25 más → devolver billete de $50.
+     */
+    private fun calcularSugerencia(cambio: Double): String? {
+        // Si el cambio ya es una denominación limpia, no hay nada que sugerir
+        if (denominaciones.any { Math.abs(it - cambio) < 0.01 }) return null
+
+        for (denom in denominaciones) {
+            if (denom > cambio) {
+                val extra = denom - cambio
+                // Solo sugerir si el extra que se pide es menor o igual al cambio
+                // y no supera los $50 (no incomodar al cliente)
+                if (extra <= cambio && extra <= 50.0) {
+                    return "Pide al cliente $${"%.2f".format(extra)} más\n" +
+                           "para devolverle un billete de $${"%.0f".format(denom)}"
+                }
+                break
+            }
+        }
+        return null
     }
 
 
@@ -231,11 +335,16 @@ class IniciarVentaActivity : AppCompatActivity() {
 
             db.ventaDao().insertar(venta)
 
-            // 3️⃣ Limpiar carrito
+            // 3️⃣ Limpiar carrito y campos de cobro
             carrito.clear()
             carritoAdapter.notifyDataSetChanged()
 
             runOnUiThread {
+                etPagoCliente.text?.clear()
+                txtCambio.text = "$0.00"
+                txtSugerenciaCambio.visibility = View.GONE
+                actualizarTotalCarrito()
+
                 Toast.makeText(
                     this@IniciarVentaActivity,
                     "Comanda enviada y venta registrada",

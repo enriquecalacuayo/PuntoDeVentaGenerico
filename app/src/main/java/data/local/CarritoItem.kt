@@ -19,13 +19,13 @@ data class CarritoItem(
             if (extras.isNotEmpty()) "${producto.nombre} ($extras)" else producto.nombre
         }
 
-        // 👇 Muestra comentario si existe
+        val cantidadTexto = if (cantidad > 1) " (x$cantidad)" else ""
+
         val comentarioTexto = if (comentario.isNotBlank()) "\n🗒️ $comentario" else ""
 
-        // 👇 Muestra tipo de pago (tarjeta o efectivo)
         val pagoTexto = if (pagoConTarjeta) "\n💳 Pago con tarjeta" else ""
 
-        return baseNombre + comentarioTexto + pagoTexto
+        return baseNombre + cantidadTexto + comentarioTexto + pagoTexto
     }
 }
 

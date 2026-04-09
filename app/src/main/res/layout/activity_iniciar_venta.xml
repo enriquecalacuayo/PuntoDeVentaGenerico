@@ -6,106 +6,217 @@
     android:background="@android:color/white"
     android:padding="12dp">
 
-    <!-- Selección de subcategoría -->
+    <!-- ══════════════════════════════════════════════════════
+         SECCIÓN SUPERIOR: Subcategoría + Lista de productos
+         Toma el 65% del espacio vertical disponible
+         ══════════════════════════════════════════════════════ -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Subcategoría:"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginEnd="8dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerSubcategoria"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
-    </LinearLayout>
-
-    <!-- Lista de productos -->
-    <ListView
-        android:id="@+id/listViewProductos"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp"/>
+        android:orientation="vertical">
 
-    <!-- Carrito fijo -->
+        <!-- Selección de subcategoría -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subcategoría:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerSubcategoria"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <!-- Lista de productos: ocupa todo el espacio restante de la sección superior -->
+        <ListView
+            android:id="@+id/listViewProductos"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"/>
+
+    </LinearLayout>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECCIÓN INFERIOR: Carrito + Cobro
+         Toma el 35% del espacio vertical disponible
+         ══════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/layoutCarrito"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:background="#F2F2F2"
         android:elevation="8dp"
         android:padding="10dp"
-        android:layout_marginTop="6dp">
+        android:layout_marginTop="6dp"
+        android:descendantFocusability="afterDescendants">
 
-
-
-        <TextView
-            android:id="@+id/tvTituloCarrito"
+        <!-- ScrollView para que el contenido del carrito sea desplazable -->
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🛒 Carrito"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:layout_marginBottom="8dp"/>
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
-        <ListView
-            android:id="@+id/listViewCarrito"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:divider="@android:color/darker_gray"
-            android:dividerHeight="1dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvTotal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Total: $0.00"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="end"
-            android:layout_marginTop="8dp"/>
+                <!-- Título carrito + lista compacta en horizontal -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
 
-        <TextView
-            android:id="@+id/txtTotalCarrito"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Total: $0.00"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="end"
-            android:padding="8dp"
-            android:layout_marginTop="8dp" />
+                    <TextView
+                        android:id="@+id/tvTituloCarrito"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🛒 Carrito"
+                        android:textStyle="bold"
+                        android:textSize="16sp"/>
 
-        <CheckBox
-            android:id="@+id/chkPagoConTarjeta"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pago con tarjeta 💳"
-            android:textSize="16sp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="8dp"
-            android:padding="4dp" />
+                    <TextView
+                        android:id="@+id/txtTotalCarrito"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total: $0.00"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#5B3A29"
+                        android:paddingStart="8dp"/>
 
-        <Button
-            android:id="@+id/btnEnviarComanda"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enviar a Comandas"
-            android:layout_margin="16dp"
-            android:backgroundTint="@color/teal_700"
-            android:textColor="@android:color/white"/>
+                </LinearLayout>
+
+                <!-- Lista del carrito: altura fija pequeña, suficiente para 2-3 items -->
+                <ListView
+                    android:id="@+id/listViewCarrito"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:divider="@android:color/darker_gray"
+                    android:dividerHeight="1dp"/>
+
+                <!-- Fila: tipo de pago + cobro en una sola línea -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp">
+
+                    <CheckBox
+                        android:id="@+id/chkPagoConTarjeta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tarjeta 💳"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="12dp"/>
+
+                    <!-- Sección de cobro en efectivo (inline) -->
+                    <LinearLayout
+                        android:id="@+id/layoutCobro"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Recibido:"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#3E2010"
+                            android:layout_marginEnd="4dp"/>
+
+                        <EditText
+                            android:id="@+id/etPagoCliente"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="0.00"
+                            android:inputType="numberDecimal"
+                            android:digits="0123456789."
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:gravity="end|center_vertical"
+                            android:textColor="#1A1A1A"
+                            android:textColorHint="#AAAAAA"
+                            android:background="@android:drawable/edit_text"
+                            android:padding="6dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:cursorVisible="true"
+                            android:imeOptions="actionDone"
+                            android:maxLines="1"
+                            android:selectAllOnFocus="true"
+                            android:layout_marginEnd="8dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cambio:"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#3E2010"
+                            android:layout_marginEnd="4dp"/>
+
+                        <TextView
+                            android:id="@+id/txtCambio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#2E7D32"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Sugerencia de cambio (debajo, solo cuando aplica) -->
+                <TextView
+                    android:id="@+id/txtSugerenciaCambio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:background="#FFF3CD"
+                    android:padding="8dp"
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp"
+                    android:textColor="#7B4F00"
+                    android:textStyle="italic"/>
+
+                <Button
+                    android:id="@+id/btnEnviarComanda"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Enviar a Comandas"
+                    android:layout_marginTop="6dp"
+                    android:backgroundTint="@color/teal_700"
+                    android:textColor="@android:color/white"/>
+
+            </LinearLayout>
+        </ScrollView>
 
     </LinearLayout>
 

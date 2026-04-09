@@ -1,143 +1,143 @@
-# Contexto del Proyecto - Punto de Venta
+# Claude Code — Project Context: PuntoDeVentaGenerico
 
-## ⚠️ IMPORTANTE
-Este es un sistema POS real en uso. 
-NO romper funcionalidades existentes.
-
----
-
-## 🧠 Arquitectura mental del sistema
-
-El sistema funciona en 3 flujos principales:
-
-1. Venta (cajero)
-2. Comandas (cocina/barista)
-3. Historial + Caja (administración)
+## Critical Rule
+This is a production POS system in active use. Do not break existing functionality.
 
 ---
 
-## 🛒 Flujo de Venta
+## System Architecture
 
-Archivo principal:
-- IniciarVentaActivity
+Three primary flows:
 
-Proceso:
-1. Seleccionar subcategoría
-2. Mostrar productos
-3. Agregar al carrito
-4. Aplicar personalizaciones (si existen)
-5. (Opcional) agregar comentario
-6. Generar comanda
-7. Guardar venta
+| Flow | Entry Point | Description |
+|---|---|---|
+| Sale | `IniciarVentaActivity` | Cart, personalizations, comanda generation, payment |
+| Kitchen | `VerComandasActivity` | Real-time comanda display for kitchen/barista |
+| Admin | `HistorialVentasActivity` → `EstadisticasDiaActivity` | History, stats, cash drawer |
 
 ---
 
-## 💰 Reglas de negocio IMPORTANTES
+## Profile System
 
-### 🔴 PRECIOS
-- El precio del producto YA incluye extras
-- NO recalcular extras en el carrito
+**Architecture**: Each profile is a separate Room database (`pv_<profileId>.db`). Profiles are stored as a JSON array in SharedPreferences via `ProfileManager`.
 
----
+**Key files:**
+- `data/local/Perfil.kt` — data class: `id`, `nombre`, `descripcion`
+- `data/local/ProfileManager.kt` — singleton: `getPerfiles()`, `getPerfilActivo()`, `setPerfilActivo()`, `crearPerfil()`, `eliminarPerfil()`, `getDatabaseName()`
+- `ui/perfiles/SeleccionPerfilActivity.kt` — shown on first launch and on "Cambiar perfil"
 
-### 🔴 COMANDAS
-- No mostrar personalizaciones con flag:
-  `ocultarEnComanda = true`
-- Evitar duplicar texto:
-  ❌ (extra)(extra)
-  ✅ (extra)
-
----
-
-### 🔴 CAJA
-- Solo considerar EFECTIVO
-- Ventas con tarjeta NO afectan caja
-
-Fórmula:
-
-esperado = cajaInicio + ventasEfectivo - gastos
-
+**Rules:**
+- Every `Room.databaseBuilder(...)` call must use `ProfileManager.getDatabaseName(applicationContext)` — never hardcode `"punto_venta_db"`
+- `MenuPrincipalActivity.onResume()` guards entry: if `getPerfilActivo() == null`, redirect to `SeleccionPerfilActivity`
+- Deleting a profile removes access but does not delete the `.db` file
 
 ---
 
-### 🔴 PERSONALIZACIONES
-Tienen:
-- descripcion
-- costoExtra
-- ocultarEnComanda (boolean)
+## Backup System
+
+**Architecture**: JSON serialization of all tables in the active profile's database.
+
+**Key file:** `data/local/BackupManager.kt`
+
+| Method | Trigger | Destination |
+|---|---|---|
+| `autoBackup(context)` | `MenuPrincipalActivity.onResume()` | `getExternalFilesDir("backups")/backup_<profile>.json` |
+| `exportar(context, uri)` | Manual button → SAF `CreateDocument` | User-chosen location |
+| `importar(context, uri)` | Manual button → SAF `OpenDocument` | Active profile's database (full replace) |
+
+**Backup JSON structure** (version 1):
+```json
+{
+  "version": 1,
+  "perfilId": "string",
+  "perfilNombre": "string",
+  "fechaBackup": "long",
+  "subcategorias": [],
+  "productos": [],
+  "personalizaciones": [],
+  "historialPersonalizaciones": [],
+  "ventas": [],
+  "comandas": [],
+  "cajaDias": [],
+  "gastos": []
+}
+```
+
+**Rules:**
+- Import performs a full replace: all tables are cleared before re-inserting
+- Auto-backup is silent (no UI feedback), errors are swallowed
+- Export/import use SAF — no storage permissions required on any Android version
 
 ---
 
-## 🧱 ENTIDADES
+## Business Rules (Do Not Break)
 
-### ProductoEntity
-- id
-- nombre
-- categoria
-- precioPublico
-- costoUnitario
+### Pricing
+- `ProductoEntity.precioPublico` already includes personalization extras at the time the item is added to the cart
+- Do NOT re-sum `PersonalizacionEntity.costoExtra` at checkout or in any total calculation
 
----
+### Cash Drawer
+- Only `pagoConTarjeta = false` sales count toward physical cash
+- Formula: `esperado = cajaInicio + ventasEfectivo - gastos`
+- Card sales are tracked in stats but excluded from cash reconciliation
 
-### PersonalizacionEntity
-- id
-- productoId
-- descripcion
-- costoExtra
-- ocultarEnComanda (IMPORTANTE)
+### Comandas
+- Do not render personalizations marked `ocultarEnComanda = true` (field not yet on entity — future migration)
+- Avoid duplicate personalization text in comanda description: `(extra)(extra)` is wrong, `(extra)` is correct
 
 ---
 
-### CarritoItem
-- producto
-- cantidad
-- personalizaciones
-- comentario
+## Entities
+
+| Entity | Table | Key Fields |
+|---|---|---|
+| `ProductoEntity` | `productos` | `id`, `nombre`, `categoria`, `precioPublico`, `costoUnitario`, `ocultarEnComandas` |
+| `SubcategoriaEntity` | `subcategorias` | `id`, `nombre` |
+| `PersonalizacionEntity` | `personalizaciones` | `id`, `productoId`, `descripcion`, `costoExtra` |
+| `HistorialPersonalizacionEntity` | `historial_personalizacion` | `id`, `descripcion`, `costoExtra` |
+| `VentaEntity` | `ventas` | `id`, `productosVendidos`, `totalVenta`, `ganancia`, `fecha`, `pagoConTarjeta` |
+| `ComandaEntity` | `comandas` | `id`, `descripcion`, `fechaHora` |
+| `CajaDiaEntity` | `caja_dia` | `fecha` (PK), `cajaInicio`, `gastos`, `cajaFinal` |
+| `GastoEntity` | `gastos_dia` | `id`, `fecha`, `nombre`, `monto` |
+| `CarritoItem` | *(in-memory only)* | `producto`, `cantidad`, `personalizaciones`, `comentario`, `pagoConTarjeta` |
 
 ---
 
-### VentaEntity
-- id
-- fecha
-- productosVendidos
-- totalVenta
-- ganancia
-- pagoConTarjeta (boolean)
+## Resolved Bugs (Do Not Reintroduce)
+
+| Bug | Status |
+|---|---|
+| Double-summing extras in cart total | Fixed |
+| Duplicate personalization text in comandas | Fixed |
+| Null pointer on personalization checkbox | Fixed |
+| Cash drawer including card sales | Fixed |
+| ListView item click stolen by child Button | Fixed — `descendantFocusability="blocksDescendants"` + click on root view |
 
 ---
 
-## 🧠 Problemas ya resueltos (NO romper)
+## Database
 
-- ❌ doble suma de extras → YA solucionado
-- ❌ duplicación de personalizaciones → YA solucionado
-- ❌ crash por null checkbox → YA solucionado
-- ❌ caja incorrecta → lógica separada efectivo/tarjeta
-
----
-
-## 🎯 Qué debe hacer Claude
-
-Cuando modifiques código:
-
-1. NO romper lógica existente
-2. Mantener consistencia de base de datos
-3. Validar cálculos financieros
-4. Evitar duplicaciones de texto
-5. Seguir estructura actual (Room + Activities)
+- Class: `AppDatabase` — Room, version 8
+- Migration strategy: `fallbackToDestructiveMigration()`
+- **Do not rename tables without a proper Room migration**
+- **Do not change column types without incrementing the DB version**
 
 ---
 
-## 🛠️ Tipo de cambios esperados
+## Expected Change Types
 
-- UI improvements
-- Corrección de bugs
-- Nuevas funcionalidades POS
-- Optimización de flujo de venta
+- UI improvements and new screens
+- Bug fixes
+- New POS features (discounts, multi-item combos, receipt printing, etc.)
+- New profile-scoped functionality
+- Backup format extensions (add new tables to `BackupManager.serializarDB` + `restaurarDB`)
 
 ---
 
-## 🚫 Qué NO hacer
+## What NOT To Do
 
-- No cambiar nombres de tablas sin migración
-- No duplicar lógica de precios
-- No alterar flujo de comandas sin cuidado
+- Do not hardcode `"punto_venta_db"` — always use `ProfileManager.getDatabaseName(context)`
+- Do not recalculate extra costs from personalizations after cart insertion
+- Do not change table/column names without a Room migration
+- Do not duplicate comanda text rendering logic
+- Do not add network calls — this app is intentionally offline-first
